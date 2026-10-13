@@ -4655,7 +4655,9 @@ function buildSubtitleLine() {
 
   const renderDate = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-  return [REPORT.bank, `Generated ${renderDate}`, REPORT.preparer ? `Prepared by ${REPORT.preparer}` : ''].filter(Boolean).join(' · ');
+  // Short header: just the preparer's name (the part before the first comma of the stored preparer)
+  const preparerName = String(REPORT.preparer || '').split(',')[0].trim();
+  return preparerName ? `Prepared by ${preparerName}` : '';
 }
 
 function updateSubtitle() {
