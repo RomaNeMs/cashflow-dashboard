@@ -586,9 +586,52 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
       📥 Import Bank Data
     </button>
     <button onclick="openSaveModal()" style="background:rgba(91,79,207,.12);color:var(--accent);border:1px solid rgba(91,79,207,.3);padding:7px 16px;font-size:12px;border-radius:7px">💾 Save As</button>
+    <button id="qcToggle" class="qc-toggle" onclick="toggleQuickCalc()" title="Calculator (⌘K)">🧮 Calc</button>
     <button id="closeMonthBtn" onclick="openCloseMonth()" style="display:none;background:rgba(22,163,74,.1);color:#15803D;border:1px solid rgba(22,163,74,.25);padding:7px 16px;font-size:12px;border-radius:7px">✓ Close Month</button>
   </div>
 </header>
+
+<!-- Floating draggable calculator (same as the ToDo dashboard's) -->
+<div class="qc-window" id="qcWindow">
+  <style>
+    .qc-toggle{background:rgba(91,79,207,.12);color:var(--accent);border:1px solid rgba(91,79,207,.3);padding:7px 14px;font-size:12px;border-radius:7px}
+    .qc-toggle.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .qc-window{position:fixed;width:320px;background:var(--s1);border-radius:12px;box-shadow:0 10px 30px rgba(26,24,53,.22),0 2px 6px rgba(26,24,53,.1);border:1px solid var(--bd);z-index:2600;display:none;user-select:none}
+    .qc-window.open{display:block}
+    .qc-head{background:var(--accent);color:#fff;padding:8px 12px;border-radius:12px 12px 0 0;cursor:move;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13px;touch-action:none}
+    .qc-head .qc-close{color:rgba(255,255,255,.85);font-size:18px;line-height:1;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:transparent;padding:0}
+    .qc-head .qc-close:hover{background:rgba(255,255,255,.18);opacity:1}
+    .qc-display{padding:10px 12px;display:flex;align-items:baseline;gap:8px;border-bottom:1px solid var(--bd);user-select:auto}
+    .qc-display input[type=text]{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--bd);border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px;font-variant-numeric:tabular-nums;background:#fff;color:var(--text)}
+    .qc-display input[type=text]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent)}
+    .qc-live{color:var(--accent);font-weight:700;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;min-width:70px;text-align:right;font-variant-numeric:tabular-nums}
+    .qc-live.error{color:var(--muted);font-weight:400}
+    .qc-list{max-height:200px;overflow-y:auto;margin:8px 12px 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;border:1px solid var(--bd);border-radius:6px;background:var(--s2);user-select:auto}
+    .qc-row{display:grid;grid-template-columns:1fr auto 22px;align-items:center;padding:4px 8px;gap:8px;border-bottom:1px solid var(--bd)}
+    .qc-row:last-child{border-bottom:0}
+    .qc-row .expr{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .qc-row .result{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--text)}
+    .qc-row .del{color:var(--muted);font-size:14px;background:transparent;padding:0}
+    .qc-row .del:hover{color:#DC2626;opacity:1}
+    .qc-empty{padding:14px;text-align:center;color:var(--muted);font-size:12px}
+    .qc-actions{display:flex;gap:6px;padding:8px 12px 12px}
+    .qc-actions button{flex:1;padding:6px;border-radius:6px;background:var(--s2);color:var(--muted);font-size:12px;font-weight:600}
+    .qc-actions button:hover{background:#EEF0FE;color:var(--accent);opacity:1}
+    @media print{.qc-window,.qc-toggle{display:none!important}}
+  </style>
+  <div class="qc-head" id="qcHead">
+    <span>Calculator <span style="opacity:.7;font-weight:400;font-size:11px">type · Enter</span></span>
+    <button class="qc-close" onclick="toggleQuickCalc()" title="Close">×</button>
+  </div>
+  <div class="qc-display">
+    <input type="text" id="qcExpr" placeholder="e.g. 100+50*2" autocomplete="off" spellcheck="false">
+    <span class="qc-live" id="qcLive"></span>
+  </div>
+  <div class="qc-list" id="qcList"></div>
+  <div class="qc-actions">
+    <button id="qcClearBtn" onclick="clearQuickCalc()">Clear</button>
+  </div>
+</div>
 
 <div id="alertBanner" class="alert-banner alert-hide">
   <span style="font-size:18px;flex-shrink:0">⚠️</span>
@@ -4694,6 +4737,130 @@ document.getElementById('fxRate').addEventListener('input', () => {
 
 ['salary','provident','social'].forEach(k => {
   document.getElementById('adj-'+k)?.addEventListener('input', () => renderAll());
+});
+
+// ════════════════════════════════════════════════
+// QUICK CALCULATOR — floating, draggable, keyboard-driven (ported from the ToDo dashboard)
+// Tape lives in memory only; window position is remembered per device (not synced).
+// ════════════════════════════════════════════════
+const QC_POS_LS = 'cashflow.qc.pos';
+let qcRows = [];
+let qcDrag = null;
+let qcUndo = null;
+
+function qcPlace() {
+  const win = document.getElementById('qcWindow');
+  let pos = null;
+  try { pos = JSON.parse(localStorage.getItem(QC_POS_LS) || 'null'); } catch (e) {}
+  let x = pos && Number.isFinite(pos.x) ? pos.x : Math.max(20, window.innerWidth - 340);
+  let y = pos && Number.isFinite(pos.y) ? pos.y : 80;
+  // keep it on screen if the window was resized since
+  x = Math.max(0, Math.min(window.innerWidth - 320, x));
+  y = Math.max(0, Math.min(window.innerHeight - 120, y));
+  win.style.left = x + 'px';
+  win.style.top = y + 'px';
+}
+function toggleQuickCalc() {
+  const win = document.getElementById('qcWindow');
+  const wasOpen = win.classList.contains('open');
+  win.classList.toggle('open');
+  document.getElementById('qcToggle')?.classList.toggle('active', !wasOpen);
+  if (!wasOpen) {
+    qcPlace(); qcRender();
+    const inp = document.getElementById('qcExpr');
+    inp.focus();                                   // immediately, so the first keystrokes aren't lost
+    setTimeout(() => { if (document.activeElement !== inp) inp.focus(); }, 0);   // and again after the click settles
+  }
+}
+function qcEval(expr) {
+  if (!expr || !/^[\d\.\+\-\*\/\(\)\s,xX]+$/.test(expr)) return NaN;
+  const cleaned = expr.replace(/[xX]/g, '*').replace(/,/g, '');
+  try {
+    const r = Function('"use strict"; return (' + cleaned + ')')();
+    return typeof r === 'number' && isFinite(r) ? r : NaN;
+  } catch (e) { return NaN; }
+}
+function qcFmt(n) { return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function qcEsc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function qcUpdateLive() {
+  const val = (document.getElementById('qcExpr').value || '').trim();
+  const out = document.getElementById('qcLive');
+  if (!val) { out.textContent = ''; out.classList.remove('error'); return; }
+  const r = qcEval(val);
+  if (isNaN(r)) { out.textContent = '?'; out.classList.add('error'); }
+  else { out.textContent = '= ' + qcFmt(r); out.classList.remove('error'); }
+}
+function qcCommit() {
+  const input = document.getElementById('qcExpr');
+  const val = (input.value || '').trim();
+  if (!val) return;
+  const r = qcEval(val);
+  if (isNaN(r)) return;
+  qcRows.push({ expr: val, result: r });
+  input.value = '';
+  document.getElementById('qcLive').textContent = '';
+  qcRender();
+}
+function qcRender() {
+  const list = document.getElementById('qcList');
+  if (!qcRows.length) { list.innerHTML = '<div class="qc-empty">Type an expression, press Enter</div>'; return; }
+  list.innerHTML = qcRows.map((r, i) => `
+    <div class="qc-row">
+      <span class="expr">${qcEsc(r.expr)}</span>
+      <span class="result">${qcFmt(r.result)}</span>
+      <button class="del" onclick="qcDelRow(${i})" title="Remove">×</button>
+    </div>`).join('');
+  list.scrollTop = list.scrollHeight;
+}
+function qcDelRow(i) { qcRows.splice(i, 1); qcRender(); }
+// Clear, with a 5-second Undo on the same button (no confirm dialog — same convention as ToDo)
+function clearQuickCalc() {
+  const btn = document.getElementById('qcClearBtn');
+  if (qcUndo) {   // button is currently "Undo"
+    qcRows = qcUndo.rows; clearTimeout(qcUndo.t); qcUndo = null;
+    btn.textContent = 'Clear'; qcRender(); return;
+  }
+  document.getElementById('qcExpr').value = '';
+  document.getElementById('qcLive').textContent = '';
+  if (!qcRows.length) return;
+  const rows = qcRows.slice();
+  qcRows = [];
+  qcRender();
+  btn.textContent = `↩ Undo clear (${rows.length})`;
+  qcUndo = { rows, t: setTimeout(() => { qcUndo = null; btn.textContent = 'Clear'; }, 5000) };
+}
+// Drag by the header — pointer events cover mouse and touch
+function qcStartDrag(ev) {
+  if (ev.target.closest('.qc-close')) return;
+  const rect = document.getElementById('qcWindow').getBoundingClientRect();
+  qcDrag = { x: ev.clientX - rect.left, y: ev.clientY - rect.top };
+  document.addEventListener('pointermove', qcDoDrag);
+  document.addEventListener('pointerup', qcEndDrag);
+  document.addEventListener('pointercancel', qcEndDrag);
+  ev.preventDefault();
+}
+function qcDoDrag(ev) {
+  if (!qcDrag) return;
+  const win = document.getElementById('qcWindow');
+  const rect = win.getBoundingClientRect();
+  win.style.left = Math.max(0, Math.min(window.innerWidth - rect.width, ev.clientX - qcDrag.x)) + 'px';
+  win.style.top  = Math.max(0, Math.min(window.innerHeight - rect.height, ev.clientY - qcDrag.y)) + 'px';
+}
+function qcEndDrag() {
+  if (!qcDrag) return;
+  qcDrag = null;
+  document.removeEventListener('pointermove', qcDoDrag);
+  document.removeEventListener('pointerup', qcEndDrag);
+  document.removeEventListener('pointercancel', qcEndDrag);
+  const win = document.getElementById('qcWindow');
+  try { localStorage.setItem(QC_POS_LS, JSON.stringify({ x: parseInt(win.style.left, 10), y: parseInt(win.style.top, 10) })); } catch (e) {}
+}
+document.getElementById('qcHead').addEventListener('pointerdown', qcStartDrag);
+document.addEventListener('input', e => { if (e.target.id === 'qcExpr') qcUpdateLive(); });
+document.addEventListener('keydown', e => {
+  if (e.target.id === 'qcExpr' && e.key === 'Enter') { e.preventDefault(); qcCommit(); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); toggleQuickCalc(); return; }
+  if (e.key === 'Escape' && document.getElementById('qcWindow').classList.contains('open')) toggleQuickCalc();
 });
 
 // Close modals on Escape
