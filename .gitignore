@@ -1,0 +1,10 @@
+# PUBLIC repo — never commit secrets or data
+Code.gs
+*.gs
+secrets.env
+*.env
+*.json
+!manifest.json
+.pwtest*
+.snaptest*
+.DS_Store
