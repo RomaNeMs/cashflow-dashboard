@@ -24,7 +24,7 @@ button{cursor:pointer;border:none;border-radius:6px;padding:5px 12px;font-size:1
 button:hover{opacity:.85}
 
 /* HEADER */
-header{background:#fff;border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(91,79,207,.06)}
+header{background:#fff;border-bottom:1px solid var(--bd);padding:8px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(91,79,207,.06)}
 .h-title{display:flex;align-items:center;gap:12px}
 .h-logo{display:flex;align-items:center;flex-shrink:0}
 .h-title-divider{width:1px;height:28px;background:var(--bd);flex-shrink:0}
@@ -32,7 +32,7 @@ header{background:#fff;border-bottom:1px solid var(--bd);padding:14px 28px;displ
 .h-title h1:hover{background:rgba(91,79,207,.06)}
 .h-title h1:focus{background:rgba(91,79,207,.08);box-shadow:0 0 0 2px rgba(91,79,207,.2)}
 .h-title p{color:var(--muted);font-size:11px;margin-top:2px;padding-left:4px}
-.h-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.h-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .h-ctrl{display:flex;align-items:center;gap:7px}
 .h-ctrl label{color:var(--muted);font-size:11px;white-space:nowrap}
 .rate-input{width:70px}
@@ -54,7 +54,7 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
 .alert-hide{display:none!important}
 
 /* PAGE */
-.page{max-width:1600px;margin:0 auto;padding:16px 28px;display:flex;flex-direction:column;gap:14px}
+.page{max-width:1600px;margin:0 auto;padding:10px 24px;display:flex;flex-direction:column;gap:10px}
 
 /* CONTROLS ROW */
 .controls-row{display:grid;grid-template-columns:1fr 1.2fr;gap:14px}
@@ -154,7 +154,7 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
 .sc-sub{font-size:10px;color:var(--muted);margin-top:2px}
 
 /* WEEKS */
-.weeks-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:start}
+.weeks-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:start}
 .week-card{background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(91,79,207,.06)}
 .wk-head{background:var(--s2);border-bottom:1px solid var(--bd);padding:9px 14px;display:flex;justify-content:space-between;align-items:flex-start}
 .wk-name-row{display:flex;flex-direction:column}
@@ -171,11 +171,27 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
 .wk-foot-paid{font-size:13px;font-weight:800;color:#16A34A}
 .wk-foot-unpaid{font-size:13px;font-weight:800;color:var(--out)}
 .wk-foot-none{font-size:12px;font-weight:700;color:var(--muted);font-style:italic}
-.sec-lbl{padding:4px 12px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);background:var(--s3)}
-.tx-row{display:grid;grid-template-columns:9px 1fr auto;gap:8px;align-items:start;padding:7px 12px;border-bottom:1px solid rgba(216,212,242,.5)}
+.sec-lbl{padding:3px 10px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);background:var(--s3);display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sec-amt{color:var(--out);font-size:11px;letter-spacing:0;text-transform:none;white-space:nowrap}
+.sec-usd{font-size:9px;font-weight:400;color:var(--accent);opacity:.7;margin-left:5px}
+/* hover card */
+#uiTip{position:fixed;z-index:4000;max-width:320px;background:#1A1835;color:#fff;font-size:11px;line-height:1.45;padding:7px 10px;border-radius:7px;box-shadow:0 6px 20px rgba(26,24,53,.25);pointer-events:none;opacity:0;transition:opacity .12s;white-space:normal}
+#uiTip.show{opacity:1}
+#uiTip .tip-first{font-weight:700}
+[data-tip]{cursor:default}
+@media print{#uiTip{display:none!important}}
+.tx-row{display:grid;grid-template-columns:8px minmax(0,1fr);column-gap:7px;row-gap:1px;align-items:center;padding:5px 10px 5px 10px;border-bottom:1px solid rgba(216,212,242,.5)}
+.tx-line1{display:flex;align-items:baseline;gap:6px;min-width:0;cursor:default}
+.tx-line1 .tx-en{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-line1 .tx-ils{flex:0 0 auto;margin-left:auto}
+.tx-line2{grid-column:2;display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0}
+.tx-meta{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-moved{color:var(--accent);font-size:10px}
+.inv-mark{font-size:10px;flex:0 0 auto}
+.icon-btn{padding:1px 5px!important;min-width:22px;text-align:center}
 .tx-row:last-child{border-bottom:none}
 .tx-row:hover{background:rgba(91,79,207,.03)}
-.tx-dot{width:9px;height:9px;border-radius:50%;margin-top:3px;flex-shrink:0}
+.tx-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;align-self:center}
 .tx-main{}
 .tx-en{font-size:12px;font-weight:500}
 .tx-he{font-size:10px;color:var(--muted);font-style:italic;margin-top:1px}
@@ -200,11 +216,11 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
 .tx-row.dragging{opacity:.3;outline:1px dashed rgba(91,79,207,.5)}
 
 /* PAID + MOVE ACTIONS */
-.tx-actions{display:flex;gap:3px;justify-content:flex-end;margin-top:4px;flex-wrap:wrap}
-.paid-toggle{font-size:9px;padding:2px 7px;border-radius:4px;background:rgba(22,163,74,.07);border:1px solid rgba(22,163,74,.18);color:#15803D;font-weight:600;white-space:nowrap;transition:all .12s}
+.tx-actions{display:flex;gap:3px;justify-content:flex-end;flex-wrap:nowrap;flex:0 0 auto}
+.paid-toggle{font-size:9px;padding:1px 6px;border-radius:4px;background:rgba(22,163,74,.07);border:1px solid rgba(22,163,74,.18);color:#15803D;font-weight:600;white-space:nowrap;transition:all .12s}
 .paid-toggle.is-paid{background:rgba(22,163,74,.14);border-color:#16A34A;color:#15803D}
-.move-btn{font-size:9px;padding:2px 7px;border-radius:4px;background:rgba(91,79,207,.07);border:1px solid rgba(91,79,207,.2);color:var(--accent);white-space:nowrap}
-.sim-toggle{font-size:9px;padding:2px 7px;border-radius:4px;background:rgba(217,119,6,.07);border:1px solid rgba(217,119,6,.2);color:#D97706;font-weight:600;white-space:nowrap;transition:all .12s}
+.move-btn{font-size:9px;padding:1px 6px;border-radius:4px;background:rgba(91,79,207,.07);border:1px solid rgba(91,79,207,.2);color:var(--accent);white-space:nowrap}
+.sim-toggle{font-size:9px;padding:1px 6px;border-radius:4px;background:rgba(217,119,6,.07);border:1px solid rgba(217,119,6,.2);color:#D97706;font-weight:600;white-space:nowrap;transition:all .12s}
 .sim-toggle.is-sim{background:rgba(217,119,6,.18);border-color:#D97706;color:#92400E}
 .tx-row.paid-row .tx-ils{text-decoration:line-through;color:var(--muted)}
 .tx-row.paid-row .tx-usd{opacity:.4}
@@ -250,8 +266,11 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
 .hdr-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);white-space:nowrap}
 .hdr-amt{font-size:17px;font-weight:800;line-height:1;white-space:nowrap}
 .hdr-sub{font-size:9px;color:var(--muted);line-height:1.3;white-space:nowrap}
+.hdr-row{display:flex;align-items:baseline;gap:6px;white-space:nowrap}
+.hdr-usd{font-size:10px;color:var(--muted);opacity:.85}
+.hdr-dot{width:8px;height:8px;border-radius:50%;background:#CBD5E1;align-self:center;flex:0 0 auto}
 .hdr-badge-inv{min-width:0;padding-right:4px}
-.calc-header{background:var(--s2);border-bottom:1px solid transparent;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;transition:background .12s}
+.calc-header{background:var(--s2);border-bottom:1px solid transparent;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;transition:background .12s}
 .calc-header:hover{background:var(--s3)}
 .calc-header.open{border-bottom-color:var(--bd)}
 .calc-toggle-icon{font-size:12px;color:var(--muted);transition:transform .2s}
@@ -392,6 +411,11 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
   .tx-ils     { font-size:8px; font-weight:700; color:#c00 }
   .tx-day     { font-size:6px; color:#999 }
   .tx-actions { display:none }
+  .tx-meta    { font-size:6px }
+  .sec-amt    { font-size:8px }
+  .sec-usd    { font-size:6px }
+  .hdr-usd    { font-size:7px }
+  .hdr-dot    { width:6px; height:6px }
   .note-box   { font-size:7px; padding:2px 6px; margin:2px 8px }
   .no-items   { font-size:7px; padding:4px }
   /* collapsed panels: show title row with summary, hide content */
@@ -462,16 +486,16 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
 .wk-cal-tx-badge{font-size:7px;font-weight:700;text-align:center;margin-top:1px;letter-spacing:.2px;opacity:.75}
 .wk-cal-cell.transfer-planned .wk-cal-tx-badge{color:#2563EB}
 .wk-cal-cell.transfer-done .wk-cal-tx-badge{color:#15803D}
-.wk-cal-legend{grid-column:1/-1;display:flex;gap:8px;padding:3px 6px 4px;border-top:1px solid var(--bd);justify-content:flex-end}
+.wk-cal-legend{grid-column:1/-1;display:none;gap:8px;padding:3px 6px 4px;border-top:1px solid var(--bd);justify-content:flex-end}
 .wk-cal-leg-item{display:flex;align-items:center;gap:3px;font-size:8px;color:var(--muted)}
 .wk-cal-leg-dot{width:7px;height:7px;border-radius:50%}
 /* USD TRANSFER ROW */
-.wk-transfer{display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(37,99,235,.035);border-bottom:1px solid rgba(37,99,235,.1);flex-wrap:nowrap;overflow:hidden}
+.wk-transfer{display:flex;align-items:center;gap:4px;row-gap:3px;padding:4px 8px;background:rgba(37,99,235,.035);border-bottom:1px solid rgba(37,99,235,.1);flex-wrap:wrap}
 .wk-transfer-label{font-size:10px;flex-shrink:0;line-height:1}
-.wk-transfer input[type=text]{width:80px;font-size:11px;padding:3px 5px;border:1px solid rgba(37,99,235,.25);border-radius:5px;background:#fff;flex-shrink:0}
-.wk-transfer input[type=date]{font-size:10px;padding:3px 5px;border:1px solid rgba(37,99,235,.25);border-radius:5px;background:#fff;color:var(--text);width:108px;flex-shrink:0}
+.wk-transfer input[type=text]{width:64px;font-size:11px;padding:3px 5px;border:1px solid rgba(37,99,235,.25);border-radius:5px;background:#fff;flex-shrink:0}
+.wk-transfer input[type=date]{font-size:10px;padding:3px 5px;border:1px solid rgba(37,99,235,.25);border-radius:5px;background:#fff;color:var(--text);width:96px;flex-shrink:0}
 .wk-transfer-ils{font-size:10px;font-weight:700;color:var(--salary);white-space:nowrap;flex-shrink:0}
-.wk-transfer-done{font-size:9px;padding:3px 8px;border-radius:4px;background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.22);color:#15803D;font-weight:600;white-space:nowrap;transition:all .12s;margin-left:auto;flex-shrink:0}
+.wk-transfer-done{font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.22);color:#15803D;font-weight:600;white-space:nowrap;transition:all .12s;margin-left:auto;flex-shrink:0}
 .wk-transfer-done.is-done{background:rgba(22,163,74,.18);border-color:#16A34A;color:#15803D}
 /* USD TRANSFER SUMMARY */
 /* #usdTransferSummary uses .panel class for sizing — only content styles below */
@@ -570,22 +594,18 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
   </div>
   <div class="h-right">
     <div class="h-ctrl">
-      <label>Predict for:</label>
       <button id="prevMonth" onclick="stepMonth(-1)" title="Previous month" style="background:var(--s2);color:var(--muted);border:1px solid var(--bd);padding:5px 9px;border-radius:6px;font-size:13px">◀</button>
       <select id="monthSelect">
       </select>
       <button id="nextMonth" onclick="stepMonth(1)" title="Next month" style="background:var(--s2);color:var(--muted);border:1px solid var(--bd);padding:5px 9px;border-radius:6px;font-size:13px">▶</button>
     </div>
     <div class="h-ctrl">
-      <label>₪ / $ rate:</label>
-      <input type="number" id="fxRate" class="rate-input" value="3.17" step="0.01" min="1">
-      <span class="fx-note">ILS per USD</span>
+      <label title="Exchange rate — ILS per 1 USD">₪/$</label>
+      <input type="number" id="fxRate" class="rate-input" value="3.17" step="0.01" min="1" title="Exchange rate — ILS per 1 USD">
     </div>
     <span class="save-status" id="saveStatus">✓ Saved</span>
-    <button onclick="openBankImport()" style="background:rgba(91,79,207,.12);color:var(--accent);border:1px solid rgba(91,79,207,.3);padding:7px 16px;font-size:12px;border-radius:7px">
-      📥 Import Bank Data
-    </button>
-    <button onclick="openSaveModal()" style="background:rgba(91,79,207,.12);color:var(--accent);border:1px solid rgba(91,79,207,.3);padding:7px 16px;font-size:12px;border-radius:7px">💾 Save As</button>
+    <button onclick="openBankImport()" title="Import bank data" style="background:rgba(91,79,207,.12);color:var(--accent);border:1px solid rgba(91,79,207,.3);padding:6px 12px;font-size:12px;border-radius:7px">📥 Import</button>
+    <button onclick="openSaveModal()" title="Save / export / backups" style="background:rgba(91,79,207,.12);color:var(--accent);border:1px solid rgba(91,79,207,.3);padding:6px 12px;font-size:12px;border-radius:7px">💾 Save</button>
     <button id="qcToggle" class="qc-toggle" onclick="toggleQuickCalc()" title="Calculator (⌘K)">🧮 Calc</button>
     <button id="closeMonthBtn" onclick="openCloseMonth()" style="display:none;background:rgba(22,163,74,.1);color:#15803D;border:1px solid rgba(22,163,74,.25);padding:7px 16px;font-size:12px;border-radius:7px">✓ Close Month</button>
   </div>
@@ -594,7 +614,7 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
 <!-- Floating draggable calculator (same as the ToDo dashboard's) -->
 <div class="qc-window" id="qcWindow">
   <style>
-    .qc-toggle{background:rgba(91,79,207,.12);color:var(--accent);border:1px solid rgba(91,79,207,.3);padding:7px 14px;font-size:12px;border-radius:7px}
+    .qc-toggle{background:rgba(91,79,207,.12);color:var(--accent);border:1px solid rgba(91,79,207,.3);padding:6px 12px;font-size:12px;border-radius:7px}
     .qc-toggle.active{background:var(--accent);color:#fff;border-color:var(--accent)}
     .qc-window{position:fixed;width:320px;background:var(--s1);border-radius:12px;box-shadow:0 10px 30px rgba(26,24,53,.22),0 2px 6px rgba(26,24,53,.1);border:1px solid var(--bd);z-index:2600;display:none;user-select:none}
     .qc-window.open{display:block}
@@ -647,7 +667,7 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
         <span style="font-size:16px">💰</span>
         <div>
           <div style="font-size:12px;font-weight:700;color:var(--text)">Cash Balance</div>
-          <div style="font-size:10px;color:var(--muted)" id="calcHeaderSub">Enter your bank balance · simulate payments · track what's paid</div>
+          <div style="font-size:10px;color:var(--muted);display:none" id="calcHeaderSub">Enter your bank balance · simulate payments · track what's paid</div>
         </div>
       </div>
       <div class="hdr-badges" id="hdrBadges">
@@ -662,11 +682,9 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
           <div class="hdr-lbl" id="hdrBankLabel">Bank Balance</div>
           <div class="hdr-amt" id="hdrBankAmt" style="color:var(--accent)">—</div>
         </div>
-        <div class="hdr-badge" id="hdrMonthBadge" title="Everything scheduled this month (sum of the 4 weeks). Sub-line: how much more than available cash that is — what must come in from the US to stay positive.">
+        <div class="hdr-badge" id="hdrMonthBadge">
           <div class="hdr-lbl">Month Total to Pay</div>
-          <div class="hdr-amt" id="hdrMonthAmt" style="color:var(--text)">—</div>
-          <div class="hdr-sub" id="hdrMonthUsd"></div>
-          <div class="hdr-sub" id="hdrMonthGap"></div>
+          <div class="hdr-row"><span class="hdr-dot" id="hdrMonthDot"></span><span class="hdr-amt" id="hdrMonthAmt" style="color:var(--text)">—</span><span class="hdr-usd" id="hdrMonthUsd"></span></div>
         </div>
         <div class="hdr-badge" id="hdrSimBadge">
           <div class="hdr-lbl" style="color:#D97706">Selected to Pay</div>
@@ -678,13 +696,11 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
         </div>
         <div class="hdr-badge" id="hdrRemainingBadge">
           <div class="hdr-lbl">Remaining to Pay</div>
-          <div class="hdr-amt" id="hdrRemainingAmt" style="color:#C2410C">—</div>
-          <div class="hdr-sub" id="hdrRemainingUsd" style="color:#C2410C;opacity:.7"></div>
+          <div class="hdr-row"><span class="hdr-amt" id="hdrRemainingAmt" style="color:#C2410C">—</span><span class="hdr-usd" id="hdrRemainingUsd" style="color:#C2410C"></span></div>
         </div>
-        <div class="hdr-badge hdr-badge-inv" id="hdrInvoiceBadge" style="display:none" title="Vendor items with a recorded invoice this month vs. items still at forecast">
+        <div class="hdr-badge hdr-badge-inv" id="hdrInvoiceBadge" style="display:none">
           <div class="hdr-lbl" style="color:#15803D">🧾 Invoiced</div>
           <div class="hdr-amt" id="hdrInvoiceAmt" style="color:#15803D;font-size:13px">—</div>
-          <div class="hdr-sub" id="hdrInvoiceSub"></div>
         </div>
         <span class="calc-toggle-icon" id="calcToggleIcon">▶</span>
       </div>
@@ -2928,76 +2944,84 @@ function renderSummary() {
 
 // For vendor/custom rows: vendorId enables drag + paid + move
 // For payroll rows: pass payrollId — draggable via data-pid
+// Plain text for hover cards (strip tags, escape for an attribute)
+function _plain(h) { return String(h || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim(); }
+function _tipAttr(lines) {
+  const t = lines.filter(Boolean).join('\n');
+  return t ? ` data-tip="${t.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}"` : '';
+}
+
+// Payment row — line 1: name + amount · line 2: day / USD + compact actions.
+// Hebrew name, description, frequency and invoice detail live in the hover card.
 function txRow(color, en, he, detail, amt, day, vendorId=null, isCustom=false) {
   const drag = vendorId ? `draggable="true" data-vid="${vendorId}"` : '';
   const mk = monthKey();
   const isPaid = vendorId && !!(state.paidItems[mk] || {})[vendorId];
   const isSim  = vendorId && !isPaid && !!(state.simItems[mk] || {})[vendorId];
-
   const inv = vendorId ? getInvoice(vendorId, mk) : null;
+
   let actions = '';
   if (vendorId) {
-    const paidLabel = isPaid ? '✓ Paid' : '○ Paid?';
     actions = `<div class="tx-actions">
-      <button class="paid-toggle${isPaid ? ' is-paid' : ''}" onclick="togglePaid('${vendorId}')">${paidLabel}</button>
+      <button class="paid-toggle${isPaid ? ' is-paid' : ''}" onclick="togglePaid('${vendorId}')" title="${isPaid ? 'Paid — click to undo' : 'Mark as paid'}">${isPaid ? '✓ Paid' : '○ Paid'}</button>
       ${!isPaid ? `<button class="sim-toggle${isSim ? ' is-sim' : ''}" onclick="toggleSimItem('${vendorId}')" title="Select to simulate payment">${isSim ? '◆ Plan' : '◇ Plan'}</button>` : ''}
-      <button class="inv-toggle${inv ? ' is-inv' : ''}" onclick="openInvoiceModal('${vendorId}',event)" title="${inv ? 'Edit or remove the recorded invoice' : 'Record the invoiced amount for this month'}">🧾 ${inv ? 'Invoiced' : 'Invoice'}</button>
-      <button class="move-btn" onclick="openMoveModal('${vendorId}',${amt},${isCustom},event)" title="Postpone to another month">↷ Move</button>
+      <button class="inv-toggle icon-btn${inv ? ' is-inv' : ''}" onclick="openInvoiceModal('${vendorId}',event)" title="${inv ? 'Invoice recorded — click to edit or remove' : 'Record the invoiced amount for this month'}">🧾</button>
+      <button class="move-btn icon-btn" onclick="openMoveModal('${vendorId}',${amt},${isCustom},event)" title="Postpone to another month">↷</button>
     </div>`;
   }
-  const varianceHtml = inv ? (() => {
+  let invLine = '';
+  if (inv) {
     const d = inv.amount - inv.forecastAmt;
-    const cls = d > 0 ? 'up' : d < 0 ? 'down' : 'same';
     const pct = inv.forecastAmt ? ` (${d > 0 ? '+' : ''}${(d / inv.forecastAmt * 100).toFixed(1)}%)` : '';
-    return `<div class="tx-variance ${cls}">Forecast ${FMT(inv.forecastAmt)} → Invoiced ${FMT(inv.amount)}${d === 0 ? ' · as forecast' : pct}${inv.ref ? ` · ${inv.ref}` : ''}</div>`;
-  })() : '';
+    invLine = `🧾 Forecast ${FMT(inv.forecastAmt)} → Invoiced ${FMT(inv.amount)}${d === 0 ? ' · as forecast' : pct}${inv.ref ? ` · ${inv.ref}` : ''}`;
+  }
+  const tip = _tipAttr([_plain(en), he, _plain(detail), invLine]);
+  const invMark = inv ? `<span class="inv-mark ${inv.amount > inv.forecastAmt ? 'up' : inv.amount < inv.forecastAmt ? 'down' : ''}">🧾</span>` : '';
 
   return `<div class="tx-row${isPaid ? ' paid-row' : isSim ? ' sim-row' : ''}" ${drag}>
     <div class="tx-dot" style="background:${color}"></div>
-    <div class="tx-main">
-      <div class="tx-en" style="color:${color}">${en}${inv ? '<span class="inv-badge">🧾 Invoiced</span>' : ''}</div>
-      ${he ? `<div class="tx-he">${he}</div>` : ''}
-      ${detail ? `<div class="tx-detail">${detail}</div>` : ''}
-      ${varianceHtml}
+    <div class="tx-line1"${tip}>
+      <span class="tx-en" style="color:${color}">${en}</span>${invMark}
+      <span class="tx-ils">${FMT(amt)}</span>
     </div>
-    <div class="tx-right">
-      <div class="tx-ils">${FMT(amt)}</div>
-      <div class="tx-usd">${FMUSD(amt, getFxRate())}</div>
-      <div class="tx-day">Day ${day}</div>
+    <div class="tx-line2">
+      <span class="tx-meta">${day && day !== '—' ? `Day ${day} · ` : ''}${FMUSD(amt, getFxRate())}</span>
       ${actions}
     </div>
   </div>`;
 }
 
-// Payroll row: paid toggle + week-move selector
+// Payroll row — same two-line layout
 function txPayrollRow(color, en, he, detail, amt, day, payrollId) {
   const mk = monthKey();
   const isPaid = !!(state.paidItems[mk] || {})[payrollId];
   const isSim  = !isPaid && !!(state.simItems[mk] || {})[payrollId];
-  const paidLabel = isPaid ? '✓ Paid' : '○ Paid?';
   const curWk = getPayrollWeek(payrollId);
   const defWk = PAYROLL_DEFAULT_WEEKS[payrollId];
-  const movedNote = curWk !== defWk ? ` <span style="color:var(--accent);font-size:10px">↪ Wk ${curWk}</span>` : '';
+  const movedNote = curWk !== defWk ? ` <span class="tx-moved">↪ Wk ${curWk}</span>` : '';
+  const tip = _tipAttr([en, he, _plain(detail), curWk !== defWk ? `Moved from week ${defWk} to week ${curWk}` : '']);
   return `<div class="tx-row${isPaid ? ' paid-row' : isSim ? ' sim-row' : ''}" draggable="true" data-pid="${payrollId}">
     <div class="tx-dot" style="background:${color}"></div>
-    <div class="tx-main">
-      <div class="tx-en" style="color:${color}">${en}${movedNote}</div>
-      ${he ? `<div class="tx-he">${he}</div>` : ''}
-      ${detail ? `<div class="tx-detail">${detail}</div>` : ''}
+    <div class="tx-line1"${tip}>
+      <span class="tx-en" style="color:${color}">${en}${movedNote}</span>
+      <span class="tx-ils">${FMT(amt)}</span>
     </div>
-    <div class="tx-right">
-      <div class="tx-ils">${FMT(amt)}</div>
-      <div class="tx-usd">${FMUSD(amt, getFxRate())}</div>
-      <div class="tx-day">Day ${day}</div>
+    <div class="tx-line2">
+      <span class="tx-meta">Day ${day} · ${FMUSD(amt, getFxRate())}</span>
       <div class="tx-actions">
-        <button class="paid-toggle${isPaid ? ' is-paid' : ''}" onclick="togglePaid('${payrollId}')">${paidLabel}</button>
+        <button class="paid-toggle${isPaid ? ' is-paid' : ''}" onclick="togglePaid('${payrollId}')" title="${isPaid ? 'Paid — click to undo' : 'Mark as paid'}">${isPaid ? '✓ Paid' : '○ Paid'}</button>
         ${!isPaid ? `<button class="sim-toggle${isSim ? ' is-sim' : ''}" onclick="toggleSimItem('${payrollId}')" title="Select to simulate payment">${isSim ? '◆ Plan' : '◇ Plan'}</button>` : ''}
       </div>
     </div>
   </div>`;
 }
 
-function secLbl(t) { return `<div class="sec-lbl">${t}</div>`; }
+// Section header carries its own total (replaces the separate "… Total" row)
+function secLbl(t, total) {
+  const amt = total === undefined ? '' :
+    `<span class="sec-amt">${FMT(total)}<span class="sec-usd">${FMUSD(total, getFxRate())}</span></span>`;
+  return `<div class="sec-lbl"><span>${t}</span>${amt}</div>`;
+}
 
 // ════════════════════════════════════════════════
 // WEEK CALENDAR STRIP + USD TRANSFER ROW
@@ -3076,7 +3100,7 @@ function buildWeekCalendar(weekNum, month, year) {
     <span class="wk-cal-leg-item"><span class="wk-cal-leg-dot" style="background:#DC2626;opacity:.5"></span>Sat — both closed</span>
     <span class="wk-cal-leg-item"><span class="wk-cal-leg-dot" style="background:rgba(100,116,139,.5)"></span>Sun — US closed</span>
   </div>` : '';
-  return `<div class="wk-cal" style="grid-template-columns:repeat(${numDays},1fr)">${cells}${legend}</div>`;
+  return `<div class="wk-cal" data-tip="Calendar colours\nFri — Israeli banks closed\nSat — both closed\nSun — US banks closed" style="grid-template-columns:repeat(${numDays},1fr)">${cells}${legend}</div>`;
 }
 
 function buildTransferRow(weekNum) {
@@ -3106,7 +3130,7 @@ function buildTransferRow(weekNum) {
     <button class="wk-transfer-done${isDone?' is-done':''}"
       onclick="toggleTransferred('${wkey}')"
       title="${isDone?'Mark as not transferred':'Mark as transferred'}">
-      ${isDone?'✓ Done':'○ Transfer?'}
+      ${isDone?'✓ Done':'○ Transfer'}
     </button>
   </div>`;
 }
@@ -3330,6 +3354,7 @@ function toggleUsdSummary() {
   renderTransferSummary();
 }
 function grpTotal(label, amount) {
+  return '';   // totals now live in the section header (secLbl)
   return `<div class="grp-total"><span>${label}</span><span class="grp-total-amt">${FMT(amount)} <span style="font-size:9px;font-weight:400;color:var(--accent);opacity:.7">${FMUSD(amount, getFxRate())}</span></span></div>`;
 }
 
@@ -3360,11 +3385,11 @@ function renderWeeks() {
     { id:'pay-social-var', color:'var(--social)',   en:'Nat. Insurance — Variable', he:'ביטוח לאומי (משתנה)',               detail:'Variable portion — due by 15th',                 amt:socialVar,               day:'15' },
     { id:'pay-social-fix', color:'var(--social)',   en:'Nat. Insurance — Fixed',    he:'ביטוח לאומי (קבוע)',                detail:`Fixed ₪${PAYROLL_BASE.socialFix.toLocaleString()} — day 22`, amt:socialFix, day:'22' },
   ];
-  payrollItems.forEach(p => {
-    const wi = getPayrollWeek(p.id) - 1;
-    wContent[wi] += secLbl('💸 ' + p.en);
-    wContent[wi] += txPayrollRow(p.color, p.en, p.he, p.detail, p.amt, p.day, p.id);
-    wContent[wi] += grpTotal(p.en + ' Total', p.amt);
+  [0,1,2,3].forEach(wi => {
+    const here = payrollItems.filter(p => getPayrollWeek(p.id) - 1 === wi);
+    if (!here.length) return;
+    wContent[wi] += secLbl('💸 Payroll', here.reduce((s, p) => s + p.amt, 0));
+    here.forEach(p => { wContent[wi] += txPayrollRow(p.color, p.en, p.he, p.detail, p.amt, p.day, p.id); });
   });
 
   // Helper: priority for sort (planned=0, normal=1, paid=2)
@@ -3383,7 +3408,7 @@ function renderWeeks() {
       const rentHere = VENDORS_DEF.filter(v => v.cat==='rent' && vendorApplicable(v) && vendorWeek(v)===wk);
       if (rentHere.length) {
         const rentRows = rentHere.map(v => ({ p: itemPriority(v.id), html: txRow('var(--rent)', vName(v), v.he, v.desc, vendorAmt(v), v.dayRange, v.id) }));
-        wContent[wi] += secLbl(wk===1 ? `🏢 Quarterly Rent — ${mName}` : `🏢 Rent (moved to Week ${wk})`);
+        wContent[wi] += secLbl(wk===1 ? `🏢 Quarterly Rent` : `🏢 Rent (moved here)`, rentHere.reduce((s,v)=>s+vendorAmt(v),0));
         wContent[wi] += sortRows(rentRows);
         wContent[wi] += grpTotal('Quarterly Rent Total', rentHere.reduce((s,v)=>s+vendorAmt(v),0));
       }
@@ -3395,7 +3420,7 @@ function renderWeeks() {
         p: itemPriority(v.id),
         html: txRow(v.cat==='flagged'?'var(--flag)':'var(--regular)', vName(v)+(v.cat==='flagged'?' ⚠️':''), v.he, v.desc, vendorAmt(v), v.dayRange, v.id)
       }));
-      wContent[wi] += secLbl('🔧 Vendors');
+      wContent[wi] += secLbl('🔧 Vendors', vHere.reduce((s,v)=>s+vendorAmt(v),0));
       wContent[wi] += sortRows(vRows);
       wContent[wi] += grpTotal('Vendors Total', vHere.reduce((s,v)=>s+vendorAmt(v),0));
     }
@@ -3403,7 +3428,7 @@ function renderWeeks() {
     const cvs = currentCustomVendors().filter(cv => cv.week === wk);
     if (cvs.length) {
       const cvRows = cvs.map(cv => ({ p: itemPriority(cv.id), html: txRow('#5B4FCF', cv.name, '', 'Manually added', cv.amount, '—', cv.id, true) }));
-      wContent[wi] += secLbl('📌 Manual Entries');
+      wContent[wi] += secLbl('📌 Manual', cvs.reduce((s,cv)=>s+cv.amount,0));
       wContent[wi] += sortRows(cvRows);
       wContent[wi] += grpTotal('Manual Entries Total', cvs.reduce((s,cv)=>s+cv.amount,0));
     }
@@ -3414,7 +3439,7 @@ function renderWeeks() {
         p: itemPriority(rv.id),
         html: txRow('#5B4FCF', vName(rv), '', vFreq(rv)==='quarterly'?'Quarterly recurring':vFreq(rv)==='bimonthly'?'Bi-monthly recurring':'Monthly recurring', getRecurringAmt(rv), '—', rv.id)
       }));
-      wContent[wi] += secLbl('🔄 Recurring');
+      wContent[wi] += secLbl('🔄 Recurring', rvs.reduce((s,rv)=>s+getRecurringAmt(rv),0));
       wContent[wi] += sortRows(rvRows);
       wContent[wi] += grpTotal('Recurring Total', rvs.reduce((s,rv)=>s+getRecurringAmt(rv),0));
     }
@@ -3765,7 +3790,7 @@ function updateHeaderBadges() {
     invBadge.style.display = st.count > 0 ? 'flex' : 'none';
     if (st.count > 0) {
       document.getElementById('hdrInvoiceAmt').textContent = FMT(st.confirmed);
-      document.getElementById('hdrInvoiceSub').textContent = `${st.count} of ${st.total} items · ${FMT(st.forecast)} forecast`;
+      invBadge.dataset.tip = `Invoices recorded for ${st.count} of ${st.total} vendor items\nConfirmed: ${FMT(st.confirmed)}\nStill at forecast: ${FMT(st.forecast)}`;
     }
   }
 
@@ -3774,15 +3799,20 @@ function updateHeaderBadges() {
   const rate = getFxRate();
   const mAmt = document.getElementById('hdrMonthAmt');
   const mUsd = document.getElementById('hdrMonthUsd');
-  const mGap = document.getElementById('hdrMonthGap');
+  const mDot = document.getElementById('hdrMonthDot');
+  const mBadge = document.getElementById('hdrMonthBadge');
   if (mAmt) mAmt.textContent = FMT(monthTotal);
   if (mUsd) mUsd.textContent = monthTotal > 0 ? FMUSD(monthTotal, rate) : '';
-  if (mGap) {
+  if (mBadge && mDot) {
+    // Gap = still-to-pay vs. cash on hand (incl. USD to convert / VAT if active); detail on hover, status as a dot
+    let tipLine, dot;
     if (bankBalance > 0) {
-      const gap = unpaidTotal - available;   // still-to-pay vs. cash on hand (incl. USD to convert / VAT if active)
-      if (gap > 0) { mGap.textContent = `Need ${FMT(gap)} · ≈ $${Math.round(gap / rate).toLocaleString('en')} from US`; mGap.style.color = '#C2410C'; }
-      else         { mGap.textContent = `Covered · ${FMT(-gap)} headroom`; mGap.style.color = '#15803D'; }
-    } else { mGap.textContent = 'Enter bank balance to see gap'; mGap.style.color = 'var(--muted)'; }
+      const gap = unpaidTotal - available;
+      if (gap > 0) { tipLine = `Need ${FMT(gap)} ≈ $${Math.round(gap / rate).toLocaleString('en')} from the US to stay positive`; dot = '#DC2626'; }
+      else         { tipLine = `Covered — ${FMT(-gap)} headroom after everything still to pay`; dot = '#16A34A'; }
+    } else { tipLine = 'Enter the bank balance to see whether the month is covered'; dot = '#CBD5E1'; }
+    mDot.style.background = dot;
+    mBadge.dataset.tip = `Everything scheduled this month (sum of the 4 weeks)\n${tipLine}`;
   }
 
   // Closed-month actual balance badge
@@ -3824,6 +3854,8 @@ function updateHeaderBadges() {
   if (remAmt) remAmt.textContent = FMT(unpaidTotal);
   const remUsd = document.getElementById('hdrRemainingUsd');
   if (remUsd) remUsd.textContent = unpaidTotal > 0 ? FMUSD(unpaidTotal, rate) : '';
+  const remBadge = document.getElementById('hdrRemainingBadge');
+  if (remBadge) remBadge.dataset.tip = 'Everything this month not yet marked Paid';
 
   // Selected / balance-after — always visible; "—" until something is planned
   const simAmt = document.getElementById('hdrSimAmt');
@@ -4867,6 +4899,44 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && document.getElementById('qcWindow').classList.contains('open')) toggleQuickCalc();
 });
 
+// ════════════════════════════════════════════════
+// HOVER CARD — any element with data-tip shows a small card (first line bold)
+// ════════════════════════════════════════════════
+(function () {
+  const tip = document.createElement('div');
+  tip.id = 'uiTip';
+  document.body.appendChild(tip);
+  let cur = null, timer = null;
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  function show(el) {
+    const t = el.dataset.tip;
+    if (!t) return;
+    const lines = t.split('\n');
+    tip.innerHTML = `<div class="tip-first">${esc(lines[0])}</div>` + lines.slice(1).map(l => `<div>${esc(l)}</div>`).join('');
+    const r = el.getBoundingClientRect();
+    tip.style.left = '0px'; tip.style.top = '0px';
+    tip.classList.add('show');
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    let x = Math.min(Math.max(8, r.left), window.innerWidth - w - 8);
+    let y = r.bottom + 6;
+    if (y + h > window.innerHeight - 8) y = Math.max(8, r.top - h - 6);
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  function hide() { clearTimeout(timer); timer = null; cur = null; tip.classList.remove('show'); }
+  document.addEventListener('mouseover', e => {
+    // transfer-day cells in the calendar have their own tooltip — don't stack two
+    const el = e.target.closest && !e.target.closest('.wk-cal-cell[onmouseenter]') && e.target.closest('[data-tip]');
+    if (el === cur) return;
+    hide();
+    if (!el) return;
+    cur = el;
+    timer = setTimeout(() => { if (cur === el) show(el); }, 280);
+  });
+  document.addEventListener('scroll', hide, true);
+  document.addEventListener('mousedown', hide, true);
+  document.addEventListener('dragstart', hide, true);
+})();
+
 // Close modals on Escape
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
@@ -4921,6 +4991,7 @@ function startApp(raw) {
   sel.innerHTML = '';
   populateMonthSelect();
   loadState(raw == null ? '' : raw);
+  loadBankBalanceForMonth();   // don't depend on the legacy calcBankBalance field being present
   renderVendorList();
   renderAll();
 }
