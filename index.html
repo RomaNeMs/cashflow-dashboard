@@ -2823,7 +2823,9 @@ window.addEventListener('afterprint',  _restoreTransferInputs);
 function saveAsPDF() {
   document.getElementById('saveModalOverlay').classList.remove('open');
   const originalTitle = document.title;
-  document.title = buildSubtitleLine();
+  // PDF title = default file name in the print dialog: name the month being printed
+  const mLabel = new Date(state.year, state.month - 1).toLocaleString('en', { month: 'long' }) + ' ' + state.year;
+  document.title = `Cashflow — ${mLabel}`;
   // Swap inputs → spans first, then give browser one frame to repaint before print capture
   _transferInputsToSpans();
   requestAnimationFrame(() => requestAnimationFrame(() => {
