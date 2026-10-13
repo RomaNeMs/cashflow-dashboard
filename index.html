@@ -4888,7 +4888,7 @@ document.getElementById('chart2')?.addEventListener('mousemove', function(evt) {
 // This file carries NO figures: reference data arrives in the saved blob's `ref`.
 // ════════════════════════════════════════════════
 
-const CF_VAULT = {"salt": "Vq5YEKBiHoMu7h2Z/4uelw==", "iv": "jTgucj2V64ijMwoN", "data": "Gtd2qrNv/G0mrf+4Frl3qlgRynPc8PrcLfIHAD3AxiK1vdiuNMHHhvuhOMIn7kHPfrSocMGXPDzDlwlJTdAGAKKN0LzCFXUe8f1jMXo0rQYUfY06LmDQAveDCvx5GLut85AojNnNfx8ZvQ/QrFy5WdIS3wXnEXlqNPz7znLtQlML/neH6MWWnh7RZp7exK9nJOJrp+x+QhFmxShSSzCn49TZndjjJw0g4LMrlQGrBHQqvJ0qqRjGgwbBMTGygscCunYxeYpt/dQSkLmKnnR+FIP0xc4ylVKG2xJUQ5JRe0cpQwP0esZZjUK3kd2sCXDKQmZJNmAnDFvrbQMuKAzS7fEkBqHJ/qW3npOLt9zDuVV40XfBqg=="};            // PBKDF2 + AES-GCM; plaintext = {key, todo, url}
+const CF_VAULT = {"salt": "RVmOzzGJlNTrfWHn1Kt4gA==", "iv": "IWUHX0QqZ4YNkSpJ", "data": "NLxphz9NxoJ6uWZvXlIWFdshEThIDuVb8Kmqel8gZe6GbKihnsUnkmRDtCOO9kjlEhoQrQbys49tmEqtGVvev+wiK/B2UVe76AVJjVyXsTJfW3fMFoYE04gvfdTiRi3+dOctoj1Zf+AYLBkniuzR0GnsKfCHXuZcagbwkVln2+mIDtzmRhmiFTbUe/67rsFQBR6gCzmw0+9VHo5jtryFvbIFFclsD2cmxxsXIRT0iCRIkNgxx4FnKHjcLiHgUiI4GrvNCarOgGYY8Epjj378Gb5xCALvG+nockkL+FpjLsEatryZZit7m8xqUUopc5TnXkxQ4IrwqB8H7Ze/v00i7cu9ovW+bScsLYujSSUTMKd6fshK3w=="};            // PBKDF2 + AES-GCM; plaintext = {key, todo, url}
 const CF_VAULT_LS = 'cashflow.vault.v1';  // decrypted vault, remembered per device
 const CF_URL_LS   = 'cashflow.api.url.v1';// per-device server override (account move)
 var _vault = null;
@@ -5009,6 +5009,7 @@ async function cfGateSubmit(e) {
         base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
       const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: _b64d(CF_VAULT.iv) }, key, _b64d(CF_VAULT.data));
       _vault = JSON.parse(new TextDecoder().decode(plain));
+      _vault.fp = CF_VAULT.salt;   // which vault this device unlocked — a new vault (passcode/key rotation) forces re-unlock
       localStorage.setItem(CF_VAULT_LS, JSON.stringify(_vault));
       cfHideGate();
       await cfBoot();
@@ -5041,6 +5042,13 @@ async function cfBoot() {
     return;
   }
   try { _vault = JSON.parse(localStorage.getItem(CF_VAULT_LS) || 'null'); } catch (e) { _vault = null; }
+  if (_vault && _vault.fp !== CF_VAULT.salt) {
+    // Passcode/key was rotated: forget the old key and this device's cached copy (the server keeps the data)
+    _vault = null;
+    [CF_VAULT_LS, STORAGE_KEY].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+    cfShowGate('pass', 'The passcode was changed — enter the new one.');
+    return;
+  }
   if (!_vault) { cfShowGate('pass'); return; }
   cfHideGate();
   if (!cfUrl()) { cfShowGate('url'); return; }
