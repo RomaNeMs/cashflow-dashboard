@@ -35,6 +35,9 @@ header{background:#fff;border-bottom:1px solid var(--bd);padding:8px 24px;displa
 .h-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .h-ctrl{display:flex;align-items:center;gap:7px}
 .h-ctrl label{color:var(--muted);font-size:11px;white-space:nowrap}
+.hol-chip{font-size:11px;font-weight:600;padding:4px 9px;border-radius:12px;border:1px solid;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis}
+.hol-chip.warn{background:#FFF7ED;border-color:#FDBA74;color:#9A3412}
+.hol-chip.info{background:#EEF2FF;border-color:#C7D2FE;color:#3730A3}
 .rate-input{width:70px}
 .fx-note{color:var(--muted);font-size:10px}
 .save-status{font-size:10px;color:#16A34A;opacity:0;transition:opacity .4s;white-space:nowrap}
@@ -85,7 +88,7 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
 .v-sec-hdr{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:8px 0 4px;border-bottom:1px solid var(--bd);margin-bottom:2px;display:flex;align-items:center;gap:6px}
 .v-sec-hdr:first-child{padding-top:0}
 .flag-dot{width:7px;height:7px;border-radius:50%;background:var(--flag);flex-shrink:0}
-.v-row{display:grid;grid-template-columns:36px 1fr 110px 66px;align-items:start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(216,212,242,.5)}
+.v-row{display:grid;grid-template-columns:30px minmax(0,1fr) 104px auto;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(216,212,242,.5)}
 .v-row:last-child{border-bottom:none}
 .v-toggle{display:flex;align-items:center;justify-content:center;padding-top:3px}
 /* PILL TOGGLE */
@@ -95,12 +98,17 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
 .toggle-btn.on::after{left:19px}
 .toggle-btn.off{background:#D8D4F2;opacity:.7}
 .v-info{}
-.v-name{font-size:12px;font-weight:600}
+.v-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .v-name.dimmed{color:var(--muted);text-decoration:line-through}
-.v-he{font-size:10px;color:var(--muted);font-style:italic;margin-top:1px}
-.v-desc{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4}
-.v-flag-reason{font-size:10px;color:#B45309;margin-top:3px;padding:4px 8px;background:rgba(217,119,6,.07);border-left:2px solid #D97706;border-radius:0 4px 4px 0;line-height:1.4}
-.v-amt-cell{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.v-he{display:none}
+.v-desc{font-size:10px;color:var(--muted);margin-top:1px;line-height:1.3;display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.v-desc .freq-badge{margin-top:0}
+.v-status{font-size:9px;color:var(--muted);white-space:nowrap}
+.v-status.moved{color:#5B4FCF;font-weight:600}
+.v-status.skipped{color:#DC2626;font-weight:600}
+.v-amt-flag{font-size:8px;color:#f59e0b;font-weight:600;text-align:right}
+.v-flag-reason{display:none;font-size:10px;color:#B45309;margin-top:3px;padding:4px 8px;background:rgba(217,119,6,.07);border-left:2px solid #D97706;border-radius:0 4px 4px 0;line-height:1.4}
+.v-amt-cell{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
 .v-amt-input{width:100px;text-align:right}
 .v-amt-note{font-size:9px;color:var(--muted);text-align:right}
 .del-btn{background:rgba(220,38,38,.08);color:#EF4444;border:1px solid rgba(220,38,38,.18);width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;padding:0;flex-shrink:0;margin-top:2px}
@@ -132,7 +140,8 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
 .freq-monthly{background:rgba(91,79,207,.07);border-color:rgba(91,79,207,.25);color:var(--accent)}
 .freq-quarterly{background:rgba(234,88,12,.07);border-color:rgba(234,88,12,.28);color:var(--rent)}
 .freq-irregular{background:rgba(120,116,168,.09);border-color:var(--bd);color:var(--muted)}
-.v-actions{display:flex;flex-direction:column;gap:3px;align-items:center}
+.v-actions{display:flex;flex-direction:row;gap:3px;align-items:center}
+.v-actions .del-btn{width:auto;min-width:28px;white-space:nowrap}
 /* PAYROLL TOTAL ROW */
 .pr-total-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:8px 8px 4px;border-top:1px solid var(--bd)}
 .pr-total-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
@@ -259,7 +268,10 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
 .soc-breakdown span{color:var(--text)}
 
 /* CASH BALANCE CALCULATOR */
-.calc-panel{background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(91,79,207,.06)}
+.calc-panel{background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(91,79,207,.06);position:sticky;top:var(--cfb,0px);z-index:60}
+/* pinned only while collapsed — the expanded calculator scrolls with the page */
+.calc-panel:has(.calc-body.open){position:relative;top:auto}
+@media print{.calc-panel{position:static!important}}
 .hdr-badges{display:flex;align-items:center;gap:0;flex-wrap:wrap;row-gap:6px;justify-content:flex-end}
 .hdr-badge{display:flex;flex-direction:column;align-items:flex-end;gap:1px;padding:0 14px;border-left:1px solid var(--bd);min-width:120px}
 .hdr-badge:first-of-type,#hdrActualBadge+.hdr-badge{border-left:none}
@@ -362,7 +374,8 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
 /* PRINT STYLES — landscape A4 one-pager */
 @media print {
   @page { size: A4 landscape; margin: 5mm; }
-  html { zoom: 0.68 }   /* scale to fit one page — adjust if content is taller/shorter */
+  html { zoom: var(--pz, 0.68) }   /* --pz set by fitPrintZoom() before printing */
+  html.print-multipage, html.print-multipage body { height:auto!important; overflow:visible!important }
   html, body { height:100vh; overflow:hidden }  /* prevent second page */
   header .h-right, .controls-row, .alert-banner,
   .add-vendor-btn, .add-vendor-form,
@@ -598,6 +611,7 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
       <select id="monthSelect">
       </select>
       <button id="nextMonth" onclick="stepMonth(1)" title="Next month" style="background:var(--s2);color:var(--muted);border:1px solid var(--bd);padding:5px 9px;border-radius:6px;font-size:13px">▶</button>
+      <span id="holChip" class="hol-chip" style="display:none"></span>
     </div>
     <div class="h-ctrl">
       <label title="Exchange rate — ILS per 1 USD">₪/$</label>
@@ -2259,7 +2273,7 @@ function buildBuiltinRow(v, ctx) {
     : (entries0.length ? `Last known: ${FMT(entries0[0][1])}${importedAmt?` · 📥 ${FMT(importedAmt)}`:''}` : 'No history');
 
   const movedWk = (state.weekOverrides[mk] || {})[v.id];
-  const skippedNote = isExcluded ? ` <span style="color:#ffa040;font-style:normal">⊘ skipped this month</span>` : '';
+  const skippedNote = isExcluded ? `<span class="v-status skipped">⊘ skipped this month</span>` : '';
   const anomaly = vendorAnomalies[v.id];
   const anomalyBadge = anomaly
     ? anomaly.isHigh
@@ -2273,12 +2287,10 @@ function buildBuiltinRow(v, ctx) {
       <div class="toggle-btn ${on?'on':'off'}" id="tog-${v.id}" onclick="toggleVendor('${v.id}')" title="${on?'Skip this month':'Include this month'}"></div>
     </div>
     <div class="v-info">
-      <div class="v-name ${on?'':'dimmed'}">${vName(v, mk)}${anomalyBadge}${_metaNote(v.id)}</div>
-      <div class="v-he">${v.he}</div>
-      <div class="v-desc">${catBadge(v.cat)} ${v.desc}${movedWk !== undefined ? ` <span style="color:#5B4FCF">↪ moved to Week ${movedWk}</span>` : ''}${skippedNote}</div>
+      <div class="v-name ${on?'':'dimmed'}"${_tipAttr([vName(v, mk), v.he, v.desc, v.flagReason, _plain(_freqBadge(v, mk, ctx.scheduled)), FMUSD(vs_state.amount, getFxRate()) + ' this month', amtNote])}>${vName(v, mk)}${anomalyBadge}${_metaNote(v.id)}</div>
+      <div class="v-desc">${catBadge(v.cat)}${_freqBadge(v, mk, ctx.scheduled)}${movedWk !== undefined ? `<span class="v-status moved">↪ Week ${movedWk}</span>` : ''}${skippedNote}</div>
       ${v.flagReason ? `<div class="v-flag-reason">${v.flagReason}</div>` : ''}
       ${isExcluded ? `<button class="mini-btn" onclick="unpostponeVendor('${v.id}')">Restore this month</button>` : ''}
-      ${_freqBadge(v, mk, ctx.scheduled)}
       ${_rangeNote(v.id, mk, ctx)}
       ${buildEditForm(v.id, 'builtin', { name: vName(v, mk), week: vBaseWeek(v, mk), freq: vFreq(v, mk), qMonths: vQMonths(v, mk) })}
     </div>
@@ -2287,9 +2299,8 @@ function buildBuiltinRow(v, ctx) {
         value="${vs_state.amount > 0 ? Math.round(vs_state.amount).toLocaleString('en') : '0'}"
         oninput="formatVendorAmt(this,'${v.id}')"
         ${on && !isInvoiced(v.id) ? '' : 'disabled'}>
-      <div class="v-amt-note" style="color:var(--accent);opacity:.7">${FMUSD(vs_state.amount, getFxRate())}${hasOverride && !isInvoiced(v.id) ? ' <span style="color:#f59e0b;font-size:8px" title="Amount set manually for this month">✎ this month</span>' : ''}</div>
+      ${hasOverride && !isInvoiced(v.id) ? '<div class="v-amt-flag" title="Amount set manually for this month">✎ this month</div>' : ''}
       ${invoiceLockNote(v.id)}
-      <div class="v-amt-note">${amtNote}</div>
     </div>
     <div class="v-actions">
       <button class="edit-btn" onclick="toggleVendorEdit('${v.id}')" title="Rename / change frequency or week (from this month forward)">✎</button>
@@ -2305,15 +2316,14 @@ function buildCustomRow(cv) {
   row.innerHTML = `
     <div class="v-toggle"><div class="toggle-btn on"></div></div>
     <div class="v-info">
-      <div class="v-name">${cv.name}</div>
-      <div class="v-desc">${catBadge('manual')} Week ${cv.week} · Manually added (this month only)</div>
+      <div class="v-name"${_tipAttr([cv.name, 'One-time entry — this month only', FMUSD(cv.amount, getFxRate())])}>${cv.name}</div>
+      <div class="v-desc">${catBadge('manual')}<span class="v-status">Week ${cv.week}</span></div>
       ${buildEditForm(cv.id, 'custom', { name: cv.name, week: cv.week, amount: cv.amount })}
     </div>
     <div class="v-amt-cell">
       <input type="text" inputmode="numeric" class="v-amt-input"
         value="${cv.amount > 0 ? Math.round(cv.amount).toLocaleString('en') : '0'}"
         oninput="formatCustomAmt(this,'${cv.id}')" ${isInvoiced(cv.id) ? 'disabled' : ''}>
-      <div class="v-amt-note" style="color:var(--accent);opacity:.7">${FMUSD(cv.amount, getFxRate())}</div>
       ${invoiceLockNote(cv.id)}
     </div>
     <div class="v-actions">
@@ -2336,16 +2346,16 @@ function buildRecurringRow(rv, ctx) {
   const baseAmt = getRecurringBaseAmt(rv, mk);
   const hasOver = (state.recurringAmtOverrides||{})[mk]?.[rv.id] !== undefined;
   const movedWk = (state.weekOverrides[mk] || {})[rv.id];
+  const recurringAvgNote = (() => { const known = recurringKnownAmts(rv, mk).slice(0,3); if (!known.length) return `Base: ${FMT(baseAmt)}`; const avg = Math.round(known.reduce((s,x)=>s+x.amt,0)/known.length); return known.length === 3 ? `Last 3 avg: ${FMT(avg)}` : `Last ${known.length} avg: ${FMT(avg)}`; })();
   const skipOrRestoreBtn = isSkipped
     ? `<button class="del-btn" style="background:rgba(22,163,74,.1);border-color:rgba(22,163,74,.3);color:#15803D;font-size:11px;padding:2px 7px" onclick="unpostponeVendor('${rv.id}')" title="Restore this month">↩ Restore</button>`
     : (!inactiveHere ? `<button class="del-btn" style="font-size:11px;padding:2px 7px;opacity:.7" onclick="removeVendor('${rv.id}')" title="Skip this month only">⊘ Skip</button>` : '');
   row.innerHTML = `
     <div class="v-toggle"><div class="toggle-btn ${isActive?'on':'off'}" onclick="${isSkipped ? `unpostponeVendor('${rv.id}')` : (!inactiveHere ? `removeVendor('${rv.id}')` : '')}" title="${isSkipped?'Restore this month':'Skip this month'}"></div></div>
     <div class="v-info">
-      <div class="v-name ${isActive?'':'dimmed'}">${vName(rv, mk)}${_metaNote(rv.id)}</div>
-      <div class="v-desc">${catBadge('recurring')} Week ${rvWeek(rv, mk)}${movedWk !== undefined ? ` <span style="color:#5B4FCF">↪ moved this month</span>` : ''}</div>
-      ${_freqBadge(rv, mk, ctx.scheduled)}
-      ${isSkipped ? `<div style="color:#DC2626;font-size:10px;font-weight:600;margin-top:2px">⊘ Skipped this month</div>` : ''}
+      <div class="v-name ${isActive?'':'dimmed'}"${_tipAttr([vName(rv, mk), _plain(_freqBadge(rv, mk, ctx.scheduled)), FMUSD(effAmt, getFxRate()) + ' this month', recurringAvgNote])}>${vName(rv, mk)}${_metaNote(rv.id)}</div>
+      <div class="v-desc">${catBadge('recurring')}${_freqBadge(rv, mk, ctx.scheduled)}<span class="v-status">Week ${rvWeek(rv, mk)}</span>${movedWk !== undefined ? `<span class="v-status moved">↪ moved this month</span>` : ''}</div>
+      ${isSkipped ? `<div class="v-status skipped" style="margin-top:2px">⊘ Skipped this month</div>` : ''}
       ${_rangeNote(rv.id, mk, ctx)}
       ${buildEditForm(rv.id, 'recurring', { name: vName(rv, mk), week: vBaseWeek(rv, mk), freq: vFreq(rv, mk), qMonths: vQMonths(rv, mk), amount: baseAmt })}
     </div>
@@ -2354,9 +2364,8 @@ function buildRecurringRow(rv, ctx) {
         value="${effAmt > 0 ? Math.round(effAmt).toLocaleString('en') : '0'}"
         oninput="formatRecurringAmt(this,'${rv.id}')"
         ${!isActive || isInvoiced(rv.id) ? 'disabled' : ''}>
-      <div class="v-amt-note" style="color:var(--accent);opacity:.7">${FMUSD(effAmt, getFxRate())}${hasOver && !isInvoiced(rv.id) ? ' <span style="color:#f59e0b;font-size:8px" title="Amount overridden for this month only — base: ₪'+baseAmt.toLocaleString('en')+'">✎ this month</span>' : ''}</div>
+      ${hasOver && !isInvoiced(rv.id) ? '<div class="v-amt-flag" title="Amount overridden for this month only — base: ₪'+baseAmt.toLocaleString('en')+'">✎ this month</div>' : ''}
       ${invoiceLockNote(rv.id)}
-      <div class="v-amt-note">${(() => { const known = recurringKnownAmts(rv, mk).slice(0,3); if (!known.length) return `Base: ${FMT(baseAmt)}`; const avg = Math.round(known.reduce((s,x)=>s+x.amt,0)/known.length); return known.length === 3 ? `Last 3 avg: ${FMT(avg)}` : `Last ${known.length} avg: ${FMT(avg)}`; })()}</div>
     </div>
     <div class="v-actions">
       <button class="edit-btn" onclick="toggleVendorEdit('${rv.id}')" title="Rename / change amount, frequency or week (from this month forward)">✎</button>
@@ -2842,15 +2851,46 @@ function saveAsPDF() {
   // PDF title = default file name in the print dialog: name the month being printed
   const mLabel = new Date(state.year, state.month - 1).toLocaleString('en', { month: 'long' }) + ' ' + state.year;
   document.title = `Cashflow — ${mLabel}`;
-  // Swap inputs → spans first, then give browser one frame to repaint before print capture
+  // Swap inputs → spans first, size the text to fill one page, then let the browser repaint before print capture
   _transferInputsToSpans();
-  requestAnimationFrame(() => requestAnimationFrame(() => {
+  fitPrintZoom().catch(() => {}).then(() => requestAnimationFrame(() => requestAnimationFrame(() => {
     window.print();
     setTimeout(() => {
       _restoreTransferInputs();
       document.title = originalTitle;
     }, 2000);
-  }));
+  })));
+}
+
+// Lay the page out off-screen at the exact printable A4-landscape size with the print styles,
+// and pick the largest zoom at which the whole month fits on one page.
+// If nothing fits even at the smallest size, allow a second page instead of cutting content off.
+async function fitPrintZoom() {
+  const PAGE_W = 1084, PAGE_H = 748;   // 287×200 mm printable (A4 landscape, 5 mm margins) at 96 dpi, small safety margin
+  const root = document.documentElement;
+  root.classList.remove('print-multipage');
+  const html = '<!DOCTYPE html>' + root.outerHTML
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/@media print/g, '@media all');
+  const fr = document.createElement('iframe');
+  fr.setAttribute('aria-hidden', 'true');
+  fr.style.cssText = `position:fixed;left:-30000px;top:0;width:${PAGE_W}px;height:${PAGE_H}px;border:0;visibility:hidden`;
+  document.body.appendChild(fr);
+  try {
+    await new Promise((res, rej) => { fr.onload = res; setTimeout(() => rej(new Error('timeout')), 4000); fr.srcdoc = html; });
+    const d = fr.contentDocument;
+    const page = d.querySelector('.page');
+    if (!page) throw new Error('no page');
+    const bottom = () => Math.max(0, ...[...d.querySelectorAll('header, .page > *')].map(e => e.getBoundingClientRect().bottom));
+    let best = null;
+    for (const z of [1.15, 1.1, 1.05, 1, 0.95, 0.9, 0.85, 0.8, 0.76, 0.72, 0.68, 0.64, 0.6]) {
+      d.documentElement.style.setProperty('--pz', z);
+      if (bottom() <= PAGE_H && d.documentElement.scrollWidth <= PAGE_W + 1) { best = z; break; }   // must fit both ways
+    }
+    if (best === null) { best = 0.6; root.classList.add('print-multipage'); }
+    root.style.setProperty('--pz', best);
+    return best;
+  } finally { fr.remove(); }
 }
 
 function saveAsHTML() {
@@ -3977,11 +4017,19 @@ const HOLIDAYS = {
 };
 
 function renderAlert() {
+  // Holiday notes show as a compact chip next to the month picker (full text on hover)
   const banner = document.getElementById('alertBanner');
+  if (banner) banner.className = 'alert-banner alert-hide';
+  const chip = document.getElementById('holChip');
   const h = HOLIDAYS[state.month];
-  if (!h) { banner.className='alert-banner alert-hide'; return; }
-  banner.className = `alert-banner ${h.sev}`;
-  document.getElementById('alertText').innerHTML = h.text;
+  if (!chip) return;
+  if (!h) { chip.style.display = 'none'; return; }
+  const strong = (h.text.match(/<strong>(.*?)<\/strong>/) || [, ''])[1].replace(/:\s*$/, '');
+  const rest = _plain(h.text.replace(/<strong>.*?<\/strong>/, ''));
+  chip.className = 'hol-chip ' + (h.sev === 'warn' ? 'warn' : 'info');
+  chip.textContent = (h.sev === 'warn' ? '⚠️ ' : 'ℹ️ ') + (strong || 'Holiday');
+  chip.dataset.tip = `${strong || 'Holiday'}\n${rest}`;
+  chip.style.display = '';
 }
 
 // ════════════════════════════════════════════════
@@ -5190,10 +5238,11 @@ function cfStatus(kind, text) {
 function cfBanner(kind, html, buttons) {
   const b = document.getElementById('cfBanner');
   if (!b) return;
-  if (!kind) { b.className = 'cf-banner'; b.innerHTML = ''; return; }
+  if (!kind) { b.className = 'cf-banner'; b.innerHTML = ''; document.documentElement.style.setProperty('--cfb', '0px'); return; }
   b.className = 'cf-banner show ' + kind;
   b.innerHTML = `<span>${html}</span><span class="cf-btns">${(buttons || []).map((x, i) => `<button data-i="${i}">${x[0]}</button>`).join('')}</span>`;
   b.querySelectorAll('button').forEach(btn => btn.onclick = () => buttons[+btn.dataset.i][1]());
+  document.documentElement.style.setProperty('--cfb', b.offsetHeight + 'px');
 }
 function cfVeil(text) {
   let v = document.getElementById('cfVeil');
