@@ -1456,7 +1456,7 @@ function importStateJSON(input) {
   const reader = new FileReader();
   reader.onload = () => {
     try {
-      const text = String(reader.result);
+      let text = String(reader.result);
       const parsed = JSON.parse(text);
       if (!parsed || typeof parsed !== 'object' || (!parsed.customVendors && !parsed.vendors && !parsed.recurringVendors)) {
         alert('This file does not look like a cashflow data export.'); return;
@@ -1466,8 +1466,10 @@ function importStateJSON(input) {
       if (!confirm(`Replace the current saved data with this file?\n\nFile contains: ${months} closed month(s), ${rvs} recurring vendor(s), schema v${parsed.schemaVersion || 1}.\n\nA backup of the current data will be kept locally first.`)) return;
       const cur = localStorage.getItem(STORAGE_KEY);
       if (cur) writeLocalBackup(cur, 'pre-import');
-      if (!parsed.ref && !hasRef()) {
-        if (!confirm('This file has no reference data (vendor list, payroll history).\n\nExport it again from the UPDATED local dashboard to include it.\n\nContinue anyway?')) return;
+      if (!parsed.ref || !(parsed.ref.vendorsDef || []).length) {
+        if (!hasRef()) { alert('This file has no reference data (vendor list, vendor history, payroll base/history), so it cannot be used on its own.\n\nNothing was changed. Reload the local dashboard (⌘R) and export again, or ask for a COMPLETE file.'); return; }
+        parsed.ref = currentRef();   // keep the reference data already loaded here
+        text = JSON.stringify(parsed);
       }
       cfReplaceAndReload(text, 'import');
     } catch(e) { alert('Could not read file: ' + e.message); }
@@ -4886,7 +4888,7 @@ document.getElementById('chart2')?.addEventListener('mousemove', function(evt) {
 // This file carries NO figures: reference data arrives in the saved blob's `ref`.
 // ════════════════════════════════════════════════
 
-const CF_VAULT = {"salt": "kEm6Zi0J5ptQOeMHMoyiJA==", "iv": "l7aUfvY0eNjVGb2O", "data": "QogcMBd3suV5mOev63VxqwKIJ+eCDZmi+KwbezGbPr15rSaZ/a9QvJajfDDXqYOaqYK3G5G+xY/7+k8JyF2GNjkaPdSj5rLOH7V5D54nY1nI3c3DpwaIdaBUM8bo1KYiWd58LZeSPGPdrEVvD7aQ/kI373tS6oxr++ZMcMwASJP1DEA7k/NWpBOxUSPlMYcADjKduaoIjWS/v/Hr0vKDEhZt2yT9c8ELbgyflY26wlF+L+dNiZtpprjIfSy53aJwIbbC0WKfn3urjzfbrPHiq/NKGcwy/+n5GnIIeXBz9rBe1OKFoT4RCElCrgCEZaDZgfHUNC8NYpuaiINrpTz6m1Eyy402eHIBb/Eq6dF9Spw+79cmBw=="};            // PBKDF2 + AES-GCM; plaintext = {key, todo, url}
+const CF_VAULT = {"salt": "Vq5YEKBiHoMu7h2Z/4uelw==", "iv": "jTgucj2V64ijMwoN", "data": "Gtd2qrNv/G0mrf+4Frl3qlgRynPc8PrcLfIHAD3AxiK1vdiuNMHHhvuhOMIn7kHPfrSocMGXPDzDlwlJTdAGAKKN0LzCFXUe8f1jMXo0rQYUfY06LmDQAveDCvx5GLut85AojNnNfx8ZvQ/QrFy5WdIS3wXnEXlqNPz7znLtQlML/neH6MWWnh7RZp7exK9nJOJrp+x+QhFmxShSSzCn49TZndjjJw0g4LMrlQGrBHQqvJ0qqRjGgwbBMTGygscCunYxeYpt/dQSkLmKnnR+FIP0xc4ylVKG2xJUQ5JRe0cpQwP0esZZjUK3kd2sCXDKQmZJNmAnDFvrbQMuKAzS7fEkBqHJ/qW3npOLt9zDuVV40XfBqg=="};            // PBKDF2 + AES-GCM; plaintext = {key, todo, url}
 const CF_VAULT_LS = 'cashflow.vault.v1';  // decrypted vault, remembered per device
 const CF_URL_LS   = 'cashflow.api.url.v1';// per-device server override (account move)
 var _vault = null;
@@ -5068,6 +5070,8 @@ async function cfLoad() {
     _cloud.lastOk = new Date();
     cfStartFromBlob(res.state);
     cfStatus('ok', '✓ Synced');
+    if (!hasRef()) cfBanner('err', '⛔ The data on the server is missing its reference part (vendor list, history, payroll base) — vendors and payroll will look incomplete and changes will not be saved. Import a complete export file.',
+      [['Import JSON file…', cfPickImport]]);
   } else if (res && res.ok) {
     // Empty server (first run, or a fresh copy after an account move)
     _cloud.ts = res.ts || null;
@@ -5108,7 +5112,18 @@ async function cfPush(force) {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return;
   // Never let a copy without reference data overwrite the server's (would erase vendor list + history)
-  if (!force) { try { const b = JSON.parse(raw); if (!b.ref || !(b.ref.vendorsDef || []).length) { cfStatus('err', '⚠ Not saved — no reference data'); return; } } catch (e) { return; } }
+  if (!force) {
+    try {
+      const b = JSON.parse(raw);
+      if (!b.ref || !(b.ref.vendorsDef || []).length) {
+        _cloud.dirty = false;
+        cfStatus('err', '⚠ Not saved');
+        cfBanner('err', '⛔ Changes are NOT being saved: the data is missing its reference part (vendor list, history, payroll base). Import a complete export file to fix this.',
+          [['Import JSON file…', cfPickImport]]);
+        return;
+      }
+    } catch (e) { return; }
+  }
   _cloud.inflight = true;
   try {
     const res = await cfFetch('saveState', { state: raw, baseTs: _cloud.ts, force: !!force }, 25000);
