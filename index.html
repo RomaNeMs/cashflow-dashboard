@@ -1410,8 +1410,11 @@ function saveState() {
       usdSumCollapsed: _usdSumCollapsed,
       dashTitle: document.getElementById('dashTitle')?.innerText || '',
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    cloudScheduleSave();
+    const raw = JSON.stringify(data);
+    // The shared browser cache is written only by a tab in good standing (never by a stale/conflicted tab),
+    // and uploads always use this tab's own `raw`, never the cache — other tabs can't leak into it.
+    if (typeof cfCacheWritable !== 'function' || cfCacheWritable()) localStorage.setItem(STORAGE_KEY, raw);
+    cloudScheduleSave(raw);
     // Flash "Saved" indicator
     const el = document.getElementById('saveStatus');
     if (el) {
@@ -1506,7 +1509,7 @@ function migrateState(data, fromVersion) {
 }
 
 function exportStateJSON() {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  const raw = cfMyRaw();
   if (!raw) { alert('Nothing saved yet.'); return; }
   const d = new Date();
   const stamp = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;
@@ -1537,7 +1540,7 @@ function importStateJSON(input) {
       const months = Object.keys(parsed.closedMonths || {}).length;
       const rvs = (parsed.recurringVendors || []).length;
       if (!confirm(`Replace the current saved data with this file?\n\nFile contains: ${months} closed month(s), ${rvs} recurring vendor(s), schema v${parsed.schemaVersion || 1}.\n\nA backup of the current data will be kept locally first.`)) return;
-      const cur = localStorage.getItem(STORAGE_KEY);
+      const cur = (typeof cfMyRaw === 'function') ? cfMyRaw() : localStorage.getItem(STORAGE_KEY);
       if (cur) writeLocalBackup(cur, 'pre-import');
       if (!parsed.ref || !(parsed.ref.vendorsDef || []).length) {
         if (!hasRef()) { alert('This file has no reference data (vendor list, vendor history, payroll base/history), so it cannot be used on its own.\n\nNothing was changed. Reload the local dashboard (⌘R) and export again, or ask for a COMPLETE file.'); return; }
@@ -1558,7 +1561,7 @@ function restoreLocalBackup() {
   const pick = prompt(`Restore which backup? Enter a number:\n\n${lines}`);
   const idx = parseInt(pick) - 1;
   if (isNaN(idx) || !keys[idx]) return;
-  const cur = localStorage.getItem(STORAGE_KEY);
+  const cur = (typeof cfMyRaw === 'function') ? cfMyRaw() : localStorage.getItem(STORAGE_KEY);
   if (cur) writeLocalBackup(cur, 'pre-restore');
   cfReplaceAndReload(localStorage.getItem(keys[idx]), 'restore');
 }
@@ -2908,7 +2911,7 @@ function saveAsHTML() {
     vendorState[id] = { active: state.vendors[id].active, amount: state.vendors[id].amount };
   });
 
-  const snapBlob = JSON.stringify({ ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'), ref: currentRef(), month: state.month, year: state.year })
+  const snapBlob = JSON.stringify({ ...JSON.parse(cfMyRaw() || '{}'), ref: currentRef(), month: state.month, year: state.year })
     .replace(/</g, '\u003c');
   // Tag assembled from pieces so this source never contains it verbatim (the removal regex below must not match code)
   const patchScript = '<scr' + 'ipt id="cf-snap">window.__SNAPSHOT_BLOB = ' + snapBlob + ';</scr' + 'ipt>';
@@ -5189,6 +5192,9 @@ var _cloud = {
   readOnly: false,     // server unreachable at load: whole app locked, nothing written
   snapshot: false,     // opened from a downloaded HTML snapshot: no server
   timer: null, inflight: false, dirty: false, retry: 0, lastOk: null,
+  baseRaw: null,        // the server copy this tab last loaded or saved (3-way merge base)
+  pendingRaw: null,     // this tab's latest state, waiting to be uploaded
+  conflicted: false,    // an unresolvable conflict stopped saving in this tab
 };
 
 // ── reference data ──
@@ -5365,6 +5371,7 @@ async function cfLoad() {
     if (local && local !== res.state) writeLocalBackup(local, 'pre-server-load');
     localStorage.setItem(STORAGE_KEY, res.state);
     _cloud.ts = res.ts || null;
+    _cloud.baseRaw = res.state;
     _cloud.loaded = true;
     _cloud.lastOk = new Date();
     cfStartFromBlob(res.state);
@@ -5399,16 +5406,70 @@ async function cfLoad() {
 }
 
 // ── save ──
-function cloudScheduleSave() {
-  if (_cloud.snapshot || _cloud.readOnly || !_cloud.loaded || _cloud.seedPending) return;
+// Per-device view settings — never a reason to upload, never cause a conflict
+const CF_UI_KEYS = ['month', 'year', 'calcOpen', 'payrollCollapsed', 'vendorsCollapsed', 'chartCollapsed', 'usdSumCollapsed', 'calcBankBalance', 'schemaVersion'];
+// Content fingerprint: ignores view settings AND field order (a merged copy lists fields in a different order)
+function _canon(v) { return Array.isArray(v) ? v.map(_canon) : (v && typeof v === 'object') ? Object.keys(v).sort().reduce((o, k) => (o[k] = _canon(v[k]), o), {}) : v; }
+function cfContent(raw) {
+  try { const o = JSON.parse(raw); CF_UI_KEYS.forEach(k => delete o[k]); return JSON.stringify(_canon(o)); } catch (e) { return raw; }
+}
+// This tab's own data (never another tab's copy from the shared cache, unless nothing else exists)
+function cfMyRaw() { return _cloud.pendingRaw || _cloud.baseRaw || localStorage.getItem(STORAGE_KEY); }
+function cfCacheWritable() { return !_cloud.conflicted && !_cloud.readOnly; }
+
+function cloudScheduleSave(raw) {
+  if (raw) _cloud.pendingRaw = raw;   // always remember this tab's latest state
+  if (_cloud.snapshot || _cloud.readOnly || !_cloud.loaded || _cloud.seedPending || _cloud.conflicted) return;
+  if (!_cloud.pendingRaw) return;
+  // Nothing but view settings changed (month switch, panel toggle…) → nothing to upload
+  if (!_cloud.inflight && _cloud.baseRaw && cfContent(_cloud.pendingRaw) === cfContent(_cloud.baseRaw)) {
+    _cloud.dirty = false; clearTimeout(_cloud.timer); return;
+  }
   _cloud.dirty = true;
   clearTimeout(_cloud.timer);
   _cloud.timer = setTimeout(() => cfPush(false), 1200);
   cfStatus('pending', 'Saving…');
 }
+
+// ── 3-way merge: keep both sides' changes; same field changed on both → this tab's edit wins ──
+function _isObj(x) { return x && typeof x === 'object' && !Array.isArray(x); }
+function _eq(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+function _idArr(a) { return Array.isArray(a) && a.length > 0 && a.every(e => _isObj(e) && e.id != null); }
+function cfMerge3(base, mine, theirs) {
+  if (_eq(mine, theirs)) return mine;
+  if (_eq(base, mine)) return theirs;      // only the other side changed
+  if (_eq(base, theirs)) return mine;      // only this tab changed
+  if (_isObj(mine) && _isObj(theirs)) {
+    const bo = _isObj(base) ? base : {}, out = {};
+    for (const k of new Set([...Object.keys(bo), ...Object.keys(mine), ...Object.keys(theirs)])) {
+      const r = cfMerge3(bo[k], mine[k], theirs[k]);
+      if (r !== undefined) out[k] = r;
+    }
+    return out;
+  }
+  if (Array.isArray(mine) && Array.isArray(theirs) && (_idArr(mine) || _idArr(theirs))) {
+    // lists of vendors / manual entries: merge item by item using their id
+    const bm = new Map((Array.isArray(base) ? base : []).filter(_isObj).map(e => [e.id, e]));
+    const mm = new Map(mine.map(e => [e.id, e])), tm = new Map(theirs.map(e => [e.id, e]));
+    const out = [];
+    for (const id of new Set([...mine.map(e => e.id), ...theirs.map(e => e.id)])) {
+      const r = cfMerge3(bm.get(id), mm.get(id), tm.get(id));
+      if (r !== undefined) out.push(r);
+    }
+    return out;
+  }
+  return mine;
+}
+function cfMergeRaw(baseRaw, mineRaw, theirsRaw) {
+  const base = JSON.parse(baseRaw || '{}'), mine = JSON.parse(mineRaw), theirs = JSON.parse(theirsRaw || '{}');
+  const merged = cfMerge3(base, mine, theirs);
+  CF_UI_KEYS.forEach(k => { if (k in mine) merged[k] = mine[k]; });   // this device's view settings
+  return JSON.stringify(merged);
+}
+
 async function cfPush(force) {
   if (_cloud.inflight) { clearTimeout(_cloud.timer); _cloud.timer = setTimeout(() => cfPush(force), 800); return; }
-  const raw = localStorage.getItem(STORAGE_KEY);
+  let raw = _cloud.pendingRaw;                 // THIS tab's state — never the shared cache
   if (!raw) return;
   // Never let a copy without reference data overwrite the server's (would erase vendor list + history)
   if (!force) {
@@ -5424,22 +5485,48 @@ async function cfPush(force) {
     } catch (e) { return; }
   }
   _cloud.inflight = true;
+  let mergedFromOthers = false;
   try {
-    const res = await cfFetch('saveState', { state: raw, baseTs: _cloud.ts, force: !!force }, 25000);
+    let res = await cfFetch('saveState', { state: raw, baseTs: _cloud.ts, force: !!force }, 25000);
+    // Another tab/device saved since we loaded: merge both sides and retry (up to 3 times)
+    for (let attempt = 0; res && res.conflict && attempt < 3; attempt++) {
+      const latest = await cfFetch('getState', null, 15000);
+      if (!latest || !latest.ok) break;
+      writeLocalBackup(raw, 'pre-merge-mine');
+      if (latest.state) writeLocalBackup(latest.state, 'pre-merge-server');
+      const merged = cfMergeRaw(_cloud.baseRaw, raw, latest.state);
+      if (cfContent(merged) !== cfContent(raw)) mergedFromOthers = true;
+      raw = merged;
+      _cloud.ts = latest.ts || null;
+      _cloud.baseRaw = latest.state || null;
+      res = await cfFetch('saveState', { state: raw, baseTs: _cloud.ts, force: false, reason: 'merge' }, 25000);
+    }
     if (res && res.ok) {
       _cloud.ts = res.ts;
+      _cloud.baseRaw = raw;
       _cloud.retry = 0;
       _cloud.lastOk = new Date();
-      _cloud.dirty = localStorage.getItem(STORAGE_KEY) !== raw;
-      if (_cloud.dirty) { _cloud.timer = setTimeout(() => cfPush(false), 600); }
+      try { localStorage.setItem(STORAGE_KEY, raw); } catch (e) {}
+      cfBroadcast({ type: 'saved', ts: res.ts });
+      if (mergedFromOthers) {
+        // Show the combined data (this tab's edit + the other side's changes)
+        cfStatus('ok', '✓ Synced — merged changes from another tab/device');
+        cfReloadKeepingPlace();
+        return;
+      }
+      const newer = _cloud.pendingRaw !== null && cfContent(_cloud.pendingRaw) !== cfContent(raw);
+      _cloud.dirty = newer;
+      if (newer) { _cloud.timer = setTimeout(() => cfPush(false), 600); }
       else cfStatus('ok', '✓ Synced ' + _cloud.lastOk.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-      const b = document.getElementById('cfBanner');
-      if (b && b.classList.contains('err') && !_cloud.readOnly) cfBanner(null);
+      const bn = document.getElementById('cfBanner');
+      if (bn && bn.classList.contains('err') && !_cloud.readOnly) cfBanner(null);
     } else if (res && res.conflict) {
-      _cloud.loaded = false;               // stop saving: another device/tab saved since we loaded
-      writeLocalBackup(raw, 'conflict');   // keep this tab's unsynced version, never lose it
+      // Could not merge after 3 tries (extremely busy edits elsewhere) — stop, keep this version safe
+      _cloud.conflicted = true;
+      _cloud.loaded = false;
+      writeLocalBackup(raw, 'conflict');
       cfStatus('err', '⚠ Not saved');
-      cfBanner('err', '⚠️ This data was changed in another tab or device since you opened it. Your latest edit here was kept in a local backup (Save → Restore Local Backup).',
+      cfBanner('err', '⚠️ This data is being changed elsewhere right now and could not be merged automatically. Your latest version was kept in a local backup (Save → Restore Local Backup).',
         [['Reload latest', () => location.reload()]]);
     } else if (res && res.error === 'unauthorized') {
       _cloud.loaded = false;
@@ -5458,6 +5545,43 @@ async function cfPush(force) {
     _cloud.timer = setTimeout(() => cfPush(false), d * 1000);
   } finally { _cloud.inflight = false; }
 }
+
+// ── keep every open copy current, so stale copies never get edited ──
+const _cfChan = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('cashflow-sync') : null;
+function cfBroadcast(msg) { try { _cfChan && _cfChan.postMessage(msg); } catch (e) {} }
+function cfReloadKeepingPlace() {
+  try { sessionStorage.setItem('cf.scrollY', String(window.scrollY)); } catch (e) {}
+  location.reload();
+}
+// Refresh this tab from the server if it changed elsewhere — only when this tab has nothing unsaved
+async function cfRefreshIfStale(reason) {
+  if (_cloud.snapshot || _cloud.readOnly || !_cloud.loaded || _cloud.conflicted || _cloud.dirty || _cloud.inflight) return;
+  try {
+    const r = await cfFetch('ping', null, 10000);
+    if (!r || !r.ok) return;
+    if (String(r.ts || '') !== String(_cloud.ts || '') && !_cloud.dirty && !_cloud.inflight) cfReloadKeepingPlace();
+  } catch (e) {}
+}
+if (_cfChan) _cfChan.onmessage = ev => {
+  const m = ev.data || {};
+  if (m.type === 'saved' && String(m.ts) !== String(_cloud.ts)) {
+    if (!_cloud.dirty && !_cloud.inflight) cfReloadKeepingPlace();   // another tab saved: show its data
+    // if this tab has unsaved edits, its next save merges automatically
+  }
+};
+let _cfLastCheck = 0;
+function _cfMaybeCheck() {
+  if (document.visibilityState !== 'visible') return;
+  if (Date.now() - _cfLastCheck < 15000) return;
+  _cfLastCheck = Date.now();
+  cfRefreshIfStale('focus');
+}
+document.addEventListener('visibilitychange', _cfMaybeCheck);
+window.addEventListener('focus', _cfMaybeCheck);
+setInterval(() => { if (document.visibilityState === 'visible') _cfMaybeCheck(); }, 60000);   // long-open tab stays current
+// restore scroll position after a refresh
+try { const y = sessionStorage.getItem('cf.scrollY'); if (y) { sessionStorage.removeItem('cf.scrollY'); window.addEventListener('load', () => setTimeout(() => window.scrollTo(0, +y), 300)); setTimeout(() => window.scrollTo(0, +y), 1500); } } catch (e) {}
+
 // Replace the server copy with `raw` (import / restore / seed / account move), then reload from it
 async function cfReplaceAndReload(raw, why) {
   if (_cloud.snapshot) { localStorage.setItem(STORAGE_KEY, raw); location.reload(); return; }
@@ -5466,6 +5590,7 @@ async function cfReplaceAndReload(raw, why) {
     const res = await cfFetch('saveState', { state: raw, baseTs: _cloud.ts, force: true, reason: why }, 30000);
     if (!res || !res.ok) throw new Error((res && res.error) || 'rejected');
     localStorage.setItem(STORAGE_KEY, raw);
+    cfBroadcast({ type: 'saved', ts: res.ts });
     location.reload();
   } catch (e) {
     cfVeil(null);
@@ -5490,7 +5615,7 @@ async function cfChangeServer() {
   cfVeil(null);
   if (!r || !r.ok) { alert(r && r.error === 'unauthorized' ? 'That server rejected the access key. Make sure Code.gs there has the same ACCESS_KEY.' : 'The new server did not answer. Nothing was changed.'); return; }
   localStorage.setItem(CF_URL_LS, u.trim());
-  const mine = localStorage.getItem(STORAGE_KEY);
+  const mine = cfMyRaw();
   if (!r.state && mine && confirm('The new server is empty.\n\nCopy your current data to it now?')) {
     _cloud.ts = r.ts || null;
     await cfReplaceAndReload(mine, 'account-move');
@@ -5514,7 +5639,7 @@ async function cfRestoreServerBackup() {
   cfVeil(null);
   if (!b || !b.ok || !b.state) { alert('Could not fetch that backup.'); return; }
   if (!confirm(`Replace the current data with the backup from ${r.backups[pick].date}?\n\nThe current version is kept as a local backup first.`)) return;
-  const cur = localStorage.getItem(STORAGE_KEY);
+  const cur = (typeof cfMyRaw === 'function') ? cfMyRaw() : localStorage.getItem(STORAGE_KEY);
   if (cur) writeLocalBackup(cur, 'pre-server-restore');
   await cfReplaceAndReload(b.state, 'server-restore');
 }
