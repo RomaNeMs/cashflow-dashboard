@@ -2,7 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cashflow">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F0EFF9">
 <title>Forecasted Monthly Cashflow - IL</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%235B4FCF'/%3E%3Cline x1='5' y1='27' x2='27' y2='27' stroke='rgba(255,255,255,0.35)' stroke-width='1.2'/%3E%3Cpolyline points='5,22 10,16 15,18 20,10' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='20' cy='10' r='2' fill='white'/%3E%3Cline x1='20' y1='10' x2='27' y2='6' stroke='rgba(255,255,255,0.55)' stroke-width='1.8' stroke-dasharray='2.5,2' stroke-linecap='round'/%3E%3Ccircle cx='27' cy='6' r='1.6' fill='rgba(255,255,255,0.55)'/%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -300,6 +307,85 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
 .calc-avail-sub{font-size:9px;color:var(--muted);margin-top:1px}
 .calc-content{display:grid;grid-template-columns:1fr 310px;gap:18px;align-items:start}
 @media(max-width:900px){.calc-content{grid-template-columns:1fr}}
+.wk-tabs{display:none}
+/* ───────── PHONE (≤700px). Desktop/print untouched. ───────── */
+@media screen and (max-width:700px){
+  html,body{overflow-x:hidden}
+  body{-webkit-text-size-adjust:100%;touch-action:manipulation}
+  input,select,textarea{font-size:16px!important}          /* iOS zooms the page on focus below 16px */
+  /* header: title line + one control row */
+  header{padding:calc(6px + env(safe-area-inset-top)) 12px 8px;gap:6px;flex-direction:column;align-items:stretch}
+  .h-logo,.h-title-divider{display:none}
+  .h-title h1{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .h-title p{display:none}
+  .h-title{min-width:0}
+  .h-right{gap:6px;flex-wrap:nowrap;justify-content:space-between}
+  .h-ctrl{gap:4px;min-width:0}
+  .h-ctrl:first-child{flex:1 1 auto}
+  #monthSelect{flex:1 1 auto;min-width:0;padding:6px 8px}
+  #prevMonth,#nextMonth{padding:6px 10px!important}
+  .rate-input{width:62px}
+  .h-ctrl label[title]{display:none}
+  .hol-chip{font-size:0;padding:4px 7px;max-width:none}
+  .hol-chip::first-letter{font-size:13px}
+  .qc-toggle,button[onclick="openBankImport()"],.save-status{display:none!important}
+  button[onclick="openSaveModal()"]{padding:6px 9px!important;font-size:0!important}
+  button[onclick="openSaveModal()"]::first-letter{font-size:15px}
+  #closeMonthBtn{padding:6px 9px!important}
+  .page{padding:8px 8px calc(16px + env(safe-area-inset-bottom));gap:8px}
+  /* Cash Balance: 2-column grid, not pinned (it would take a fifth of the screen) */
+  .calc-panel{position:relative!important;top:auto!important}
+  .calc-header{flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px}
+  .hdr-badges{display:grid;grid-template-columns:1fr 1fr;row-gap:8px;column-gap:6px}
+  .hdr-badge{border-left:none!important;padding:0;min-width:0;align-items:flex-start}
+  .hdr-badge .hdr-amt{font-size:16px}
+  .hdr-row{flex-wrap:wrap;column-gap:5px;row-gap:0}
+  .hdr-lbl{font-size:8.5px}
+  #hdrBankBadge{order:1} #hdrRemainingBadge{order:2} #hdrMonthBadge{order:3} #hdrSimBadge{order:4} #hdrSimBalBadge{order:5} #hdrInvoiceBadge{order:6}
+  #hdrActualBadge{grid-column:1/-1;order:0;justify-content:space-between}
+  .calc-toggle-icon{position:absolute;top:10px;right:12px}
+  .calc-panel{position:relative}
+  .calc-body{padding:10px}
+  /* weeks: one at a time */
+  .wk-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;position:sticky;top:0;z-index:55;background:var(--bg);padding:4px 0}
+  .wk-tab{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;border-radius:9px;background:#fff;border:1px solid var(--bd);color:var(--muted)}
+  .wk-tab-n{font-size:11px;font-weight:700}
+  .wk-tab-amt{font-size:12px;font-weight:800;color:var(--out)}
+  .wk-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .wk-tab.active .wk-tab-amt{color:#fff}
+  .weeks-grid{grid-template-columns:1fr!important;gap:0}
+  .week-card{display:none}
+  .week-card.mob-active{display:block}
+  .wk-cal-cell{padding:5px 1px}
+  .wk-cal-date{width:26px;height:26px;font-size:13px}
+  .wk-transfer{gap:6px;padding:6px 10px}
+  .wk-transfer input[type=text]{width:96px}
+  .wk-transfer input[type=date]{width:auto;flex:1 1 130px}
+  /* payment rows: bigger tap targets */
+  .tx-row{padding:8px 12px;row-gap:4px}
+  .tx-en{font-size:13.5px}
+  .tx-ils{font-size:14px}
+  .tx-meta{font-size:11px}
+  .tx-actions{gap:5px}
+  .tx-actions button{min-height:30px;font-size:11px!important;padding:3px 9px!important}
+  .tx-actions .icon-btn{min-width:34px}
+  .sec-lbl{padding:5px 12px}
+  /* panels below */
+  .panel{padding:12px}
+  .pr-table th,.pr-table td{padding:5px 4px}
+  .pr-table th:nth-child(2),.pr-table td:nth-child(2){display:none}
+  .v-row{grid-template-columns:28px minmax(0,1fr) 92px;row-gap:4px}
+  .v-row .v-actions{grid-column:2/-1;justify-content:flex-end}
+  .v-amt-input{width:90px}
+  .v-edit-row label{min-width:0;flex:1 1 140px}
+  .move-modal{max-width:calc(100vw - 16px)}
+  #uiTip{max-width:calc(100vw - 24px);font-size:12px}
+  .qc-window{display:none!important}
+  .panel-title{flex-wrap:wrap;row-gap:4px;position:relative;padding-right:18px}
+  .panel-title .panel-collapse-icon{position:absolute;right:0;top:0}
+  #payroll-collapsed-summary{flex-wrap:wrap!important;margin-left:0!important;row-gap:2px;white-space:normal}
+  #payroll-collapsed-summary span{white-space:nowrap}
+}
 .calc-list-hdr{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px}
 .ci-wk-hdr{font-size:10px;font-weight:700;color:var(--muted);padding:7px 0 3px;border-bottom:1px solid var(--bd);margin:6px 0 0}
 .ci-wk-hdr:first-child{margin-top:0;padding-top:0}
@@ -951,6 +1037,7 @@ body.month-locked #weeksGrid .tx-row[draggable="false"]{cursor:default}
   <div id="monthLockBanner" class="month-lock-banner locked" style="display:none"></div>
 
   <!-- WEEK BLOCKS -->
+  <div class="wk-tabs" id="wkTabs"></div>
   <div class="weeks-grid" id="weeksGrid"></div>
 
   <!-- USD TRANSFER SUMMARY -->
@@ -3561,6 +3648,7 @@ function renderWeeks() {
   }).join('');
 
   setupDragDrop();
+  renderWeekTabs(weeks);
 }
 
 // ════════════════════════════════════════════════
@@ -4951,6 +5039,53 @@ document.addEventListener('keydown', e => {
 });
 
 // ════════════════════════════════════════════════
+// PHONE: one week at a time — tabs + swipe
+// ════════════════════════════════════════════════
+let _mobWeek = null, _mobWeekMK = null;
+function _defaultMobWeek() {
+  const now = new Date();
+  if (state.year === now.getFullYear() && state.month === now.getMonth() + 1) {
+    const d = now.getDate();
+    return d <= 7 ? 1 : d <= 14 ? 2 : d <= 21 ? 3 : 4;
+  }
+  return 1;
+}
+function _shortAmt(n) {
+  n = Math.round(Math.abs(n));
+  if (n >= 1e6) return '₪' + (n / 1e6).toFixed(n >= 1e7 ? 1 : 2).replace(/\.?0+$/, '') + 'M';
+  if (n >= 1e3) return '₪' + Math.round(n / 1e3) + 'K';
+  return '₪' + n;
+}
+function renderWeekTabs(weeks) {
+  const bar = document.getElementById('wkTabs');
+  if (!bar) return;
+  const mk = monthKey();
+  if (_mobWeekMK !== mk) { _mobWeek = _defaultMobWeek(); _mobWeekMK = mk; }
+  const paid = state.paidItems[mk] || {};
+  bar.innerHTML = weeks.map((t, i) => `<button class="wk-tab${_mobWeek === i + 1 ? ' active' : ''}" onclick="setMobWeek(${i + 1})">
+      <span class="wk-tab-n">Week ${i + 1}</span><span class="wk-tab-amt">${_shortAmt(t)}</span></button>`).join('');
+  document.querySelectorAll('#weeksGrid .week-card').forEach((c, i) => c.classList.toggle('mob-active', _mobWeek === i + 1));
+}
+function setMobWeek(n) {
+  _mobWeek = Math.max(1, Math.min(4, n));
+  document.querySelectorAll('#wkTabs .wk-tab').forEach((b, i) => b.classList.toggle('active', _mobWeek === i + 1));
+  document.querySelectorAll('#weeksGrid .week-card').forEach((c, i) => c.classList.toggle('mob-active', _mobWeek === i + 1));
+  const tabs = document.getElementById('wkTabs');
+  if (tabs && tabs.getBoundingClientRect().top < 0) tabs.scrollIntoView({ block: 'start' });
+}
+(function () {
+  const grid = document.getElementById('weeksGrid');
+  let sx = 0, sy = 0, st = 0;
+  grid.addEventListener('touchstart', e => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; st = Date.now(); }, { passive: true });
+  grid.addEventListener('touchend', e => {
+    const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Date.now() - st > 600 || Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.6) return;
+    if (e.target.closest('input, select, textarea')) return;
+    setMobWeek((_mobWeek || 1) + (dx < 0 ? 1 : -1));
+  }, { passive: true });
+})();
+
+// ════════════════════════════════════════════════
 // HOVER CARD — any element with data-tip shows a small card (first line bold)
 // ════════════════════════════════════════════════
 (function () {
@@ -4986,6 +5121,16 @@ document.addEventListener('keydown', e => {
   document.addEventListener('scroll', hide, true);
   document.addEventListener('mousedown', hide, true);
   document.addEventListener('dragstart', hide, true);
+  // Touch screens have no hover: tap a name/figure to show its card, tap again or elsewhere to close
+  if (window.matchMedia('(hover: none)').matches) {
+    document.addEventListener('click', e => {
+      if (e.target.closest('button, input, select, a, textarea')) { hide(); return; }
+      const el = e.target.closest('[data-tip]');
+      if (!el || el === cur) { hide(); return; }
+      hide(); cur = el; show(el);
+      if (el.closest('#calcHeader')) e.stopPropagation();   // tapping a figure shouldn't also open the calculator
+    }, true);
+  }
 })();
 
 // Close modals on Escape
